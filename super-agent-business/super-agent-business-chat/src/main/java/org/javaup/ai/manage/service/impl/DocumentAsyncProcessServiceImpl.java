@@ -1,12 +1,12 @@
 package org.javaup.ai.manage.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baidu.fsg.uid.UidGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.javaup.ai.manage.config.DocumentManageProperties;
 import org.javaup.ai.manage.data.SuperAgentDocument;
 import org.javaup.ai.manage.data.SuperAgentDocumentChunk;
 import org.javaup.ai.manage.data.SuperAgentDocumentParentBlock;
@@ -21,21 +21,21 @@ import org.javaup.ai.manage.mapper.SuperAgentDocumentStrategyPlanMapper;
 import org.javaup.ai.manage.mapper.SuperAgentDocumentStrategyStepMapper;
 import org.javaup.ai.manage.mapper.SuperAgentDocumentTaskMapper;
 import org.javaup.ai.manage.service.DocumentAsyncProcessService;
+import org.javaup.ai.manage.service.DocumentNavigationIndexService;
 import org.javaup.ai.manage.service.DocumentParserService;
 import org.javaup.ai.manage.service.DocumentProfileService;
 import org.javaup.ai.manage.service.DocumentStorageService;
-import org.javaup.ai.manage.service.DocumentNavigationIndexService;
+import org.javaup.ai.manage.service.DocumentStrategyService;
 import org.javaup.ai.manage.service.DocumentStructureGraphProjectionService;
 import org.javaup.ai.manage.service.DocumentStructureNodeService;
-import org.javaup.ai.manage.service.DocumentStrategyService;
 import org.javaup.ai.manage.service.DocumentTaskLogService;
 import org.javaup.ai.manage.service.DocumentVectorGateway;
 import org.javaup.ai.manage.service.keyword.DocumentKeywordSearchGateway;
 import org.javaup.ai.manage.support.ChunkCandidate;
 import org.javaup.ai.manage.support.DocumentAnalysisResult;
-import org.javaup.ai.manage.support.ParentBlockCandidate;
 import org.javaup.ai.manage.support.DocumentStrategyPlanDraft;
 import org.javaup.ai.manage.support.DocumentStrategyStepDraft;
+import org.javaup.ai.manage.support.ParentBlockCandidate;
 import org.javaup.enums.BusinessStatus;
 import org.javaup.enums.DocumentChunkSourceTypeEnum;
 import org.javaup.enums.DocumentFileTypeEnum;
@@ -56,8 +56,8 @@ import org.javaup.enums.DocumentVectorStoreTypeEnum;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +69,7 @@ import java.util.Map;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DocumentAsyncProcessServiceImpl implements DocumentAsyncProcessService {
 
@@ -102,48 +103,10 @@ public class DocumentAsyncProcessServiceImpl implements DocumentAsyncProcessServ
 
     private final ObjectProvider<DocumentStructureGraphProjectionService> graphProjectionServiceProvider;
 
-    private final DocumentManageProperties properties;
-
     private final DocumentProfileService documentProfileService;
 
     @Resource
     private UidGenerator uidGenerator;
-
-    public DocumentAsyncProcessServiceImpl(SuperAgentDocumentMapper documentMapper,
-                                           SuperAgentDocumentStrategyPlanMapper planMapper,
-                                           SuperAgentDocumentStrategyStepMapper stepMapper,
-                                           SuperAgentDocumentTaskMapper taskMapper,
-                                           SuperAgentDocumentParentBlockMapper parentBlockMapper,
-                                           SuperAgentDocumentChunkMapper chunkMapper,
-                                           DocumentStorageService storageService,
-                                           DocumentParserService parserService,
-                                           DocumentStrategyService strategyService,
-                                           DocumentStructureNodeService structureNodeService,
-                                           DocumentTaskLogService taskLogService,
-                                           DocumentVectorGateway vectorGateway,
-                                           ObjectProvider<DocumentKeywordSearchGateway> keywordSearchGatewayProvider,
-                                           ObjectProvider<DocumentNavigationIndexService> navigationIndexServiceProvider,
-                                           ObjectProvider<DocumentStructureGraphProjectionService> graphProjectionServiceProvider,
-                                           DocumentManageProperties properties,
-                                           DocumentProfileService documentProfileService) {
-        this.documentMapper = documentMapper;
-        this.planMapper = planMapper;
-        this.stepMapper = stepMapper;
-        this.taskMapper = taskMapper;
-        this.parentBlockMapper = parentBlockMapper;
-        this.chunkMapper = chunkMapper;
-        this.storageService = storageService;
-        this.parserService = parserService;
-        this.strategyService = strategyService;
-        this.structureNodeService = structureNodeService;
-        this.taskLogService = taskLogService;
-        this.vectorGateway = vectorGateway;
-        this.keywordSearchGatewayProvider = keywordSearchGatewayProvider;
-        this.navigationIndexServiceProvider = navigationIndexServiceProvider;
-        this.graphProjectionServiceProvider = graphProjectionServiceProvider;
-        this.properties = properties;
-        this.documentProfileService = documentProfileService;
-    }
 
     @Override
 

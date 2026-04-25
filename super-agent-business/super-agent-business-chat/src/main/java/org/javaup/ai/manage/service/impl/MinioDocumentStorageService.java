@@ -1,5 +1,6 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import io.minio.BucketExistsArgs;
@@ -26,18 +27,13 @@ import java.util.List;
  * @author: 阿星不是程序员
  **/
 
+@AllArgsConstructor
 @Service
 public class MinioDocumentStorageService implements DocumentStorageService {
 
     private final MinioClient minioClient;
 
     private final DocumentManageProperties properties;
-
-    public MinioDocumentStorageService(MinioClient minioClient,
-                                       DocumentManageProperties properties) {
-        this.minioClient = minioClient;
-        this.properties = properties;
-    }
 
     @Override
     public StoredObjectInfo uploadOriginalFile(Long documentId, String originalFileName, byte[] bytes, String contentType) {

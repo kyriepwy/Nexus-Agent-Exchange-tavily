@@ -1,5 +1,6 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -31,21 +32,16 @@ import java.util.stream.Collectors;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 @ConditionalOnProperty(prefix = "app.manage.elasticsearch", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ElasticsearchDocumentNavigationIndexService implements DocumentNavigationIndexService {
 
     private static final int DEFAULT_SEARCH_SIZE = 8;
 
+    @Qualifier("documentManageElasticsearchClient")
     private final ElasticsearchClient elasticsearchClient;
     private final DocumentManageProperties properties;
-
-    public ElasticsearchDocumentNavigationIndexService(
-        @Qualifier("documentManageElasticsearchClient") ElasticsearchClient elasticsearchClient,
-        DocumentManageProperties properties) {
-        this.elasticsearchClient = elasticsearchClient;
-        this.properties = properties;
-    }
 
     @Override
     public void reindexDocumentNodes(Long documentId, Long parseTaskId, List<SuperAgentDocumentStructureNode> nodes) {

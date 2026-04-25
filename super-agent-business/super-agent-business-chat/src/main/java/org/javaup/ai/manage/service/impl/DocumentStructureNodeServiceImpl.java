@@ -1,8 +1,8 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import com.baidu.fsg.uid.UidGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import jakarta.annotation.Resource;
 import org.javaup.ai.manage.data.SuperAgentDocumentStructureNode;
 import org.javaup.ai.manage.mapper.SuperAgentDocumentStructureNodeMapper;
 import org.javaup.ai.manage.service.DocumentStructureNodeService;
@@ -21,17 +21,12 @@ import java.util.Map;
  * @author: 阿星不是程序员
  **/
 
+@AllArgsConstructor
 @Service
 public class DocumentStructureNodeServiceImpl implements DocumentStructureNodeService {
 
     private final SuperAgentDocumentStructureNodeMapper structureNodeMapper;
-
-    @Resource
-    private UidGenerator uidGenerator;
-
-    public DocumentStructureNodeServiceImpl(SuperAgentDocumentStructureNodeMapper structureNodeMapper) {
-        this.structureNodeMapper = structureNodeMapper;
-    }
+    private final UidGenerator uidGenerator;
 
     @Override
     public List<SuperAgentDocumentStructureNode> replaceDocumentNodes(Long documentId,

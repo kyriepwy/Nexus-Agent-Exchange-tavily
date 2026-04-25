@@ -1,5 +1,6 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.util.StrUtil;
 import org.javaup.ai.manage.config.DocumentManageProperties;
 import org.javaup.ai.manage.model.graph.GraphItem;
@@ -23,17 +24,13 @@ import java.util.Objects;
  * @author: 阿星不是程序员
  **/
 
+@AllArgsConstructor
 @Service
 @ConditionalOnBean(name = "documentManageNeo4jDriver")
 public class Neo4jDocumentStructureGraphService implements DocumentStructureGraphService {
 
     private final Driver driver;
     private final DocumentManageProperties properties;
-
-    public Neo4jDocumentStructureGraphService(Driver driver, DocumentManageProperties properties) {
-        this.driver = driver;
-        this.properties = properties;
-    }
 
     @Override
     public boolean isGraphAvailable(Long documentId) {

@@ -1,5 +1,7 @@
 package org.javaup.ai.manage.service.impl;
 
+import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +35,7 @@ import java.util.Map;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 @ConditionalOnBean(name = "documentManageNeo4jDriver")
 public class Neo4jDocumentStructureGraphProjectionService implements DocumentStructureGraphProjectionService {
@@ -46,18 +49,8 @@ public class Neo4jDocumentStructureGraphProjectionService implements DocumentStr
     private final SuperAgentDocumentTaskMapper taskMapper;
     private final ObjectMapper objectMapper;
 
-    public Neo4jDocumentStructureGraphProjectionService(Driver driver,
-                                                        DocumentManageProperties properties,
-                                                        DocumentStructureNodeService documentStructureNodeService,
-                                                        SuperAgentDocumentMapper documentMapper,
-                                                        SuperAgentDocumentTaskMapper taskMapper,
-                                                        ObjectMapper objectMapper) {
-        this.driver = driver;
-        this.properties = properties;
-        this.documentStructureNodeService = documentStructureNodeService;
-        this.documentMapper = documentMapper;
-        this.taskMapper = taskMapper;
-        this.objectMapper = objectMapper;
+    @PostConstruct
+    public void init() {
         initializeSchema();
     }
 

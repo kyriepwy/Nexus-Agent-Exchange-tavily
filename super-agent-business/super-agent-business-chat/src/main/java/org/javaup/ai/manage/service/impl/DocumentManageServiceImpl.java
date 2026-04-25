@@ -1,11 +1,11 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import com.baidu.fsg.uid.UidGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.hutool.core.util.StrUtil;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.data.SuperAgentDocument;
 import org.javaup.ai.manage.data.SuperAgentDocumentChunk;
@@ -114,6 +114,7 @@ import java.util.stream.Collectors;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DocumentManageServiceImpl implements DocumentManageService {
 
@@ -154,49 +155,8 @@ public class DocumentManageServiceImpl implements DocumentManageService {
     private final ObjectProvider<KnowledgeRouteIndexService> knowledgeRouteIndexServiceProvider;
 
     private final DocumentKafkaProducer kafkaProducer;
-
-    @Resource
-    private UidGenerator uidGenerator;
-
-    public DocumentManageServiceImpl(SuperAgentDocumentMapper documentMapper,
-                                     SuperAgentDocumentStrategyPlanMapper planMapper,
-                                     SuperAgentDocumentStrategyStepMapper stepMapper,
-                                     SuperAgentDocumentTaskMapper taskMapper,
-                                     SuperAgentDocumentTaskLogMapper taskLogMapper,
-                                     SuperAgentDocumentParentBlockMapper parentBlockMapper,
-                                     SuperAgentDocumentProfileMapper documentProfileMapper,
-                                     SuperAgentTopicDocumentRelationMapper topicDocumentRelationMapper,
-                                     SuperAgentDocumentChunkMapper chunkMapper,
-                                     DocumentStorageService storageService,
-                                     DocumentStructureNodeService structureNodeService,
-                                     DocumentStrategyService strategyService,
-                                     DocumentTaskLogService taskLogService,
-                                     DocumentVectorGateway vectorGateway,
-                                     ObjectProvider<DocumentKeywordSearchGateway> keywordSearchGatewayProvider,
-                                     ObjectProvider<DocumentNavigationIndexService> navigationIndexServiceProvider,
-                                     ObjectProvider<DocumentStructureGraphProjectionService> graphProjectionServiceProvider,
-                                     ObjectProvider<KnowledgeRouteIndexService> knowledgeRouteIndexServiceProvider,
-                                     DocumentKafkaProducer kafkaProducer) {
-        this.documentMapper = documentMapper;
-        this.planMapper = planMapper;
-        this.stepMapper = stepMapper;
-        this.taskMapper = taskMapper;
-        this.taskLogMapper = taskLogMapper;
-        this.parentBlockMapper = parentBlockMapper;
-        this.documentProfileMapper = documentProfileMapper;
-        this.topicDocumentRelationMapper = topicDocumentRelationMapper;
-        this.chunkMapper = chunkMapper;
-        this.storageService = storageService;
-        this.structureNodeService = structureNodeService;
-        this.strategyService = strategyService;
-        this.taskLogService = taskLogService;
-        this.vectorGateway = vectorGateway;
-        this.keywordSearchGatewayProvider = keywordSearchGatewayProvider;
-        this.navigationIndexServiceProvider = navigationIndexServiceProvider;
-        this.graphProjectionServiceProvider = graphProjectionServiceProvider;
-        this.knowledgeRouteIndexServiceProvider = knowledgeRouteIndexServiceProvider;
-        this.kafkaProducer = kafkaProducer;
-    }
+    
+    private final UidGenerator uidGenerator;
 
     @Override
     @Transactional(rollbackFor = Exception.class)

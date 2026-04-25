@@ -1,5 +1,6 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.util.StrUtil;
 import org.apache.tika.Tika;
 import org.javaup.ai.manage.service.DocumentParserService;
@@ -24,18 +25,13 @@ import java.util.List;
  * @author: 阿星不是程序员
  **/
 
+@AllArgsConstructor
 @Service
 public class TikaDocumentParserService implements DocumentParserService {
 
-    private final Tika tika = new Tika();
+    private static final Tika TIKA = new Tika();
     private final DocumentLineClassifier documentLineClassifier;
     private final DocumentStructureNodeExtractor structureNodeExtractor;
-
-    public TikaDocumentParserService(DocumentLineClassifier documentLineClassifier,
-                                     DocumentStructureNodeExtractor structureNodeExtractor) {
-        this.documentLineClassifier = documentLineClassifier;
-        this.structureNodeExtractor = structureNodeExtractor;
-    }
 
     @Override
 
@@ -77,7 +73,7 @@ public class TikaDocumentParserService implements DocumentParserService {
         try {
             if (fileType == DocumentFileTypeEnum.PDF || fileType == DocumentFileTypeEnum.DOC || fileType == DocumentFileTypeEnum.DOCX) {
 
-                return tika.parseToString(new ByteArrayInputStream(bytes));
+                return TIKA.parseToString(new ByteArrayInputStream(bytes));
             }
             if (fileType == DocumentFileTypeEnum.TXT || fileType == DocumentFileTypeEnum.MD) {
 
@@ -85,10 +81,10 @@ public class TikaDocumentParserService implements DocumentParserService {
             }
             if (fileType == DocumentFileTypeEnum.HTML) {
 
-                return tika.parseToString(new ByteArrayInputStream(bytes));
+                return TIKA.parseToString(new ByteArrayInputStream(bytes));
             }
 
-            return tika.parseToString(new ByteArrayInputStream(bytes));
+            return TIKA.parseToString(new ByteArrayInputStream(bytes));
         }
         catch (Exception exception) {
 

@@ -1,5 +1,6 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.util.StrUtil;
 import org.javaup.ai.manage.data.SuperAgentDocumentStructureNode;
 import org.javaup.ai.manage.model.graph.GraphItem;
@@ -23,14 +24,11 @@ import java.util.Objects;
  * @author: 阿星不是程序员
  **/
 
+@AllArgsConstructor
 @Service("mysqlDocumentStructureGraphService")
 public class MysqlDocumentStructureGraphService implements DocumentStructureGraphService {
 
     private final DocumentStructureNodeService documentStructureNodeService;
-
-    public MysqlDocumentStructureGraphService(DocumentStructureNodeService documentStructureNodeService) {
-        this.documentStructureNodeService = documentStructureNodeService;
-    }
 
     @Override
     public GraphSection findSectionById(Long documentId, Long sectionNodeId) {

@@ -1,10 +1,10 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baidu.fsg.uid.UidGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.data.SuperAgentDocument;
 import org.javaup.ai.manage.data.SuperAgentDocumentProfile;
@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  * @author: 阿星不是程序员
  **/
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DocumentProfileServiceImpl implements DocumentProfileService {
 
@@ -43,19 +44,7 @@ public class DocumentProfileServiceImpl implements DocumentProfileService {
     private final SuperAgentDocumentProfileMapper documentProfileMapper;
     private final SuperAgentDocumentStructureNodeMapper structureNodeMapper;
     private final DocumentStorageService storageService;
-
-    @Resource
-    private UidGenerator uidGenerator;
-
-    public DocumentProfileServiceImpl(SuperAgentDocumentMapper documentMapper,
-                                      SuperAgentDocumentProfileMapper documentProfileMapper,
-                                      SuperAgentDocumentStructureNodeMapper structureNodeMapper,
-                                      DocumentStorageService storageService) {
-        this.documentMapper = documentMapper;
-        this.documentProfileMapper = documentProfileMapper;
-        this.structureNodeMapper = structureNodeMapper;
-        this.storageService = storageService;
-    }
+    private final UidGenerator uidGenerator;
 
     @Override
     public SuperAgentDocumentProfile generateProfile(Long documentId,

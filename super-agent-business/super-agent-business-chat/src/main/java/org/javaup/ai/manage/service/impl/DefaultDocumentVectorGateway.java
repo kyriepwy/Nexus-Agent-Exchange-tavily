@@ -1,5 +1,6 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,6 +36,7 @@ import java.util.Objects;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DefaultDocumentVectorGateway implements DocumentVectorGateway {
 
@@ -70,24 +72,15 @@ public class DefaultDocumentVectorGateway implements DocumentVectorGateway {
 
     private static final String DELETE_BY_DOCUMENT_SQL_TEMPLATE = "DELETE FROM %s WHERE document_id = ?";
 
+    @Qualifier("documentManagePgVectorJdbcTemplate")
     private final JdbcTemplate pgVectorJdbcTemplate;
 
     private final ObjectProvider<EmbeddingModel> embeddingModelProvider;
 
     private final ObjectMapper objectMapper;
 
-    private final String embeddingModelName;
-
-    public DefaultDocumentVectorGateway(
-        @Qualifier("documentManagePgVectorJdbcTemplate") JdbcTemplate pgVectorJdbcTemplate,
-        ObjectProvider<EmbeddingModel> embeddingModelProvider,
-        ObjectMapper objectMapper,
-        @Value("${spring.ai.openai.embedding.options.model:}") String embeddingModelName) {
-        this.pgVectorJdbcTemplate = pgVectorJdbcTemplate;
-        this.embeddingModelProvider = embeddingModelProvider;
-        this.objectMapper = objectMapper;
-        this.embeddingModelName = embeddingModelName;
-    }
+    @Value("${spring.ai.openai.embedding.options.model:}")
+    private String embeddingModelName;
 
     @Override
     public void vectorize(List<SuperAgentDocumentChunk> chunkList) {

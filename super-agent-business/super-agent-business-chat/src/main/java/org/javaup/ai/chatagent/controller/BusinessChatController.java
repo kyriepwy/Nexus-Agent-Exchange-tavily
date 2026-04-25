@@ -2,10 +2,10 @@ package org.javaup.ai.chatagent.controller;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.javaup.ai.chatagent.dto.ConversationIdentityDto;
-import org.javaup.ai.chatagent.dto.ConversationExchangeDetailQueryDto;
-import org.javaup.ai.chatagent.dto.ConversationSessionListQueryDto;
 import org.javaup.ai.chatagent.dto.ChatRequestDto;
+import org.javaup.ai.chatagent.dto.ConversationExchangeDetailQueryDto;
+import org.javaup.ai.chatagent.dto.ConversationIdentityDto;
+import org.javaup.ai.chatagent.dto.ConversationSessionListQueryDto;
 import org.javaup.ai.chatagent.dto.RetrievalObserveQueryDto;
 import org.javaup.ai.chatagent.model.ChannelExecutionView;
 import org.javaup.ai.chatagent.model.ConversationExchangeDetailView;
@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 /**
  * @program: 企业级别深度设计 AI Agent。添加 阿星不是程序员 微信，添加时备注 super 来获取项目的完整资料
  * @description: 控制层
@@ -43,7 +45,7 @@ public class BusinessChatController {
     }
 
     @PostMapping("/document/options")
-    public ApiResponse<java.util.List<KnowledgeDocumentOptionView>> documentOptions() {
+    public ApiResponse<List<KnowledgeDocumentOptionView>> documentOptions() {
         return ApiResponse.ok(businessChatService.listKnowledgeDocumentOptions());
     }
 
@@ -78,17 +80,17 @@ public class BusinessChatController {
     }
 
     @PostMapping("/exchange/retrieval/results")
-    public ApiResponse<java.util.List<RetrievalResultView>> retrievalResults(@Valid @RequestBody RetrievalObserveQueryDto dto) {
+    public ApiResponse<List<RetrievalResultView>> retrievalResults(@Valid @RequestBody RetrievalObserveQueryDto dto) {
         return ApiResponse.ok(businessChatService.getRetrievalResults(dto.getConversationId(), Long.parseLong(dto.getExchangeId())));
     }
 
     @PostMapping("/exchange/channel/executions")
-    public ApiResponse<java.util.List<ChannelExecutionView>> channelExecutions(@Valid @RequestBody RetrievalObserveQueryDto dto) {
+    public ApiResponse<List<ChannelExecutionView>> channelExecutions(@Valid @RequestBody RetrievalObserveQueryDto dto) {
         return ApiResponse.ok(businessChatService.getChannelExecutions(dto.getConversationId(), Long.parseLong(dto.getExchangeId())));
     }
 
     @PostMapping("/stage/benchmarks")
-    public ApiResponse<java.util.List<StageBenchmarkView>> stageBenchmarks() {
+    public ApiResponse<List<StageBenchmarkView>> stageBenchmarks() {
         return ApiResponse.ok(businessChatService.getStageBenchmarks());
     }
 }

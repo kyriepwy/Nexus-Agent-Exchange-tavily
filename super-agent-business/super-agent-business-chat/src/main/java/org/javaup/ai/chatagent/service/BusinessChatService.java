@@ -36,6 +36,7 @@ import org.javaup.ai.chatagent.vo.ConversationSessionListVo;
 import org.javaup.ai.chatagent.vo.ConversationStopVo;
 import org.javaup.enums.ChatTurnStatus;
 import org.javaup.enums.ChatQueryMode;
+import org.javaup.exception.SuperAgentFrameException;
 import org.javaup.lease.RedisLeaseManager;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.messages.MessageType;
@@ -1222,7 +1223,7 @@ public class BusinessChatService {
 
     private String normalizeQuestion(String question) {
         if (StrUtil.isBlank(question)) {
-            throw new IllegalArgumentException("question 不能为空");
+            throw new SuperAgentFrameException("question 不能为空");
         }
 
         return question.trim();

@@ -1,9 +1,9 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import cn.hutool.core.util.StrUtil;
 import com.baidu.fsg.uid.UidGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.data.SuperAgentDocument;
 import org.javaup.ai.manage.data.SuperAgentDocumentProfile;
@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
  * @author: 阿星不是程序员
  **/
 @Slf4j
+@AllArgsConstructor
 @Service
 public class KnowledgeRouteServiceImpl implements KnowledgeRouteService {
 
@@ -64,27 +65,7 @@ public class KnowledgeRouteServiceImpl implements KnowledgeRouteService {
     private final SuperAgentKnowledgeRouteTraceMapper knowledgeRouteTraceMapper;
     private final ObjectProvider<EmbeddingModel> embeddingModelProvider;
     private final ObjectProvider<KnowledgeRouteIndexService> knowledgeRouteIndexServiceProvider;
-
-    @Resource
-    private UidGenerator uidGenerator;
-
-    public KnowledgeRouteServiceImpl(SuperAgentDocumentMapper documentMapper,
-                                     SuperAgentDocumentProfileMapper documentProfileMapper,
-                                     SuperAgentKnowledgeScopeNodeMapper scopeNodeMapper,
-                                     SuperAgentKnowledgeTopicNodeMapper topicNodeMapper,
-                                     SuperAgentTopicDocumentRelationMapper topicDocumentRelationMapper,
-                                     SuperAgentKnowledgeRouteTraceMapper knowledgeRouteTraceMapper,
-                                     ObjectProvider<EmbeddingModel> embeddingModelProvider,
-                                     ObjectProvider<KnowledgeRouteIndexService> knowledgeRouteIndexServiceProvider) {
-        this.documentMapper = documentMapper;
-        this.documentProfileMapper = documentProfileMapper;
-        this.scopeNodeMapper = scopeNodeMapper;
-        this.topicNodeMapper = topicNodeMapper;
-        this.topicDocumentRelationMapper = topicDocumentRelationMapper;
-        this.knowledgeRouteTraceMapper = knowledgeRouteTraceMapper;
-        this.embeddingModelProvider = embeddingModelProvider;
-        this.knowledgeRouteIndexServiceProvider = knowledgeRouteIndexServiceProvider;
-    }
+    private final UidGenerator uidGenerator;
 
     @Override
     public KnowledgeRouteDecision route(String question, String rewriteQuestion) {

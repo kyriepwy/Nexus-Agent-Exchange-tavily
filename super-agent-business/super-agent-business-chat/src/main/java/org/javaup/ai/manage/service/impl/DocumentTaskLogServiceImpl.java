@@ -1,9 +1,9 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import com.baidu.fsg.uid.UidGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.Resource;
 import org.javaup.ai.manage.data.SuperAgentDocumentTaskLog;
 import org.javaup.ai.manage.mapper.SuperAgentDocumentTaskLogMapper;
 import org.javaup.ai.manage.service.DocumentTaskLogService;
@@ -16,21 +16,13 @@ import org.springframework.stereotype.Service;
  * @author: 阿星不是程序员
  **/
 
+@AllArgsConstructor
 @Service
 public class DocumentTaskLogServiceImpl implements DocumentTaskLogService {
 
     private final SuperAgentDocumentTaskLogMapper taskLogMapper;
-
     private final ObjectMapper objectMapper;
-
-    @Resource
-    private UidGenerator uidGenerator;
-
-    public DocumentTaskLogServiceImpl(SuperAgentDocumentTaskLogMapper taskLogMapper,
-                                      ObjectMapper objectMapper) {
-        this.taskLogMapper = taskLogMapper;
-        this.objectMapper = objectMapper;
-    }
+    private final UidGenerator uidGenerator;
 
     @Override
     public void saveLog(Long taskId,

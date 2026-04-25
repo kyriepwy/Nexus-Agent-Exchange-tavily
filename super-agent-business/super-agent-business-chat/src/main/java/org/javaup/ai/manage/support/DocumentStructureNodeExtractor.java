@@ -1,6 +1,8 @@
 package org.javaup.ai.manage.support;
 
 import cn.hutool.core.util.StrUtil;
+import lombok.AllArgsConstructor;
+import org.javaup.enums.DocumentStructureNodeTypeEnum;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -10,7 +12,7 @@ import java.util.List;
  * @description: 支撑组件
  * @author: 阿星不是程序员
  **/
-
+@AllArgsConstructor
 @Component
 public class DocumentStructureNodeExtractor {
 
@@ -19,23 +21,13 @@ public class DocumentStructureNodeExtractor {
     private final DocumentStructureHierarchyResolver hierarchyResolver;
     private final DocumentStructureTreeValidator treeValidator;
 
-    public DocumentStructureNodeExtractor(DocumentStructureSignalExtractor signalExtractor,
-                                          DocumentStructureAmbiguityResolver ambiguityResolver,
-                                          DocumentStructureHierarchyResolver hierarchyResolver,
-                                          DocumentStructureTreeValidator treeValidator) {
-        this.signalExtractor = signalExtractor;
-        this.ambiguityResolver = ambiguityResolver;
-        this.hierarchyResolver = hierarchyResolver;
-        this.treeValidator = treeValidator;
-    }
-
     public List<DocumentStructureNodeCandidate> extract(String documentTitle, String parsedText) {
         String normalizedTitle = StrUtil.blankToDefault(documentTitle, "文档").trim();
         String normalizedText = StrUtil.blankToDefault(parsedText, "").trim();
         if (normalizedText.isBlank()) {
             return List.of(new DocumentStructureNodeCandidate(
                 1,
-                org.javaup.enums.DocumentStructureNodeTypeEnum.DOCUMENT.getCode(),
+                DocumentStructureNodeTypeEnum.DOCUMENT.getCode(),
                 null,
                 0,
                 0,

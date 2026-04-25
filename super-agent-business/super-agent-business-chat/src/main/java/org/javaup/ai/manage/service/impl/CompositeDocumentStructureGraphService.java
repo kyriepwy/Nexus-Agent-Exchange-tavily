@@ -1,5 +1,6 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.model.graph.GraphItem;
 import org.javaup.ai.manage.model.graph.GraphSection;
@@ -17,18 +18,13 @@ import java.util.List;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Primary
 @Service
 public class CompositeDocumentStructureGraphService implements DocumentStructureGraphService {
 
     private final MysqlDocumentStructureGraphService mysqlGraphService;
     private final ObjectProvider<Neo4jDocumentStructureGraphService> neo4jGraphServiceProvider;
-
-    public CompositeDocumentStructureGraphService(MysqlDocumentStructureGraphService mysqlGraphService,
-                                                  ObjectProvider<Neo4jDocumentStructureGraphService> neo4jGraphServiceProvider) {
-        this.mysqlGraphService = mysqlGraphService;
-        this.neo4jGraphServiceProvider = neo4jGraphServiceProvider;
-    }
 
     @Override
     public boolean isGraphAvailable(Long documentId) {

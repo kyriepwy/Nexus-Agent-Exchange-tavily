@@ -1,6 +1,5 @@
 package org.javaup.ai.manage.service.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
@@ -10,6 +9,7 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.config.DocumentManageProperties;
 import org.javaup.ai.manage.data.SuperAgentDocument;
@@ -38,7 +38,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -49,12 +48,15 @@ import java.util.stream.Collectors;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 @ConditionalOnProperty(prefix = "app.manage.elasticsearch", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ElasticsearchKnowledgeRouteIndexService implements KnowledgeRouteIndexService {
 
     private static final Duration REFRESH_INTERVAL = Duration.ofSeconds(5);
+    private static final AtomicLong LAST_REFRESH_TIME = new AtomicLong(0L);
 
+    @Qualifier("documentManageElasticsearchClient")
     private final ElasticsearchClient elasticsearchClient;
     private final DocumentManageProperties properties;
     private final SuperAgentKnowledgeScopeNodeMapper scopeNodeMapper;
@@ -62,40 +64,23 @@ public class ElasticsearchKnowledgeRouteIndexService implements KnowledgeRouteIn
     private final SuperAgentDocumentMapper documentMapper;
     private final SuperAgentDocumentProfileMapper documentProfileMapper;
     private final SuperAgentTopicDocumentRelationMapper topicDocumentRelationMapper;
-    private final AtomicLong lastRefreshTime = new AtomicLong(0L);
-
-    public ElasticsearchKnowledgeRouteIndexService(
-        @Qualifier("documentManageElasticsearchClient") ElasticsearchClient elasticsearchClient,
-        DocumentManageProperties properties,
-        SuperAgentKnowledgeScopeNodeMapper scopeNodeMapper,
-        SuperAgentKnowledgeTopicNodeMapper topicNodeMapper,
-        SuperAgentDocumentMapper documentMapper,
-        SuperAgentDocumentProfileMapper documentProfileMapper,
-        SuperAgentTopicDocumentRelationMapper topicDocumentRelationMapper) {
-        this.elasticsearchClient = elasticsearchClient;
-        this.properties = properties;
-        this.scopeNodeMapper = scopeNodeMapper;
-        this.topicNodeMapper = topicNodeMapper;
-        this.documentMapper = documentMapper;
-        this.documentProfileMapper = documentProfileMapper;
-        this.topicDocumentRelationMapper = topicDocumentRelationMapper;
-    }
+    
 
     @Override
     public void refreshIfNeeded() {
         long now = System.currentTimeMillis();
-        long last = lastRefreshTime.get();
+        long last = LAST_REFRESH_TIME.get();
         if (now - last < REFRESH_INTERVAL.toMillis()) {
             return;
         }
-        if (!lastRefreshTime.compareAndSet(last, now)) {
+        if (!LAST_REFRESH_TIME.compareAndSet(last, now)) {
             return;
         }
         try {
             refreshAll();
         }
         catch (Exception exception) {
-            lastRefreshTime.set(0L);
+            LAST_REFRESH_TIME.set(0L);
             log.warn("刷新知识路由索引失败，将在下次查询时重试。", exception);
         }
     }

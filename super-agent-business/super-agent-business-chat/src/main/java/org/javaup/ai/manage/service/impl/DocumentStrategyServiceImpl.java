@@ -3,14 +3,15 @@ package org.javaup.ai.manage.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.config.DocumentManageProperties;
 import org.javaup.ai.manage.data.SuperAgentDocument;
-import org.javaup.ai.manage.data.SuperAgentDocumentStructureNode;
 import org.javaup.ai.manage.data.SuperAgentDocumentStrategyPlan;
 import org.javaup.ai.manage.data.SuperAgentDocumentStrategyStep;
-import org.javaup.ai.manage.service.DocumentStructureNodeService;
+import org.javaup.ai.manage.data.SuperAgentDocumentStructureNode;
 import org.javaup.ai.manage.service.DocumentStrategyService;
+import org.javaup.ai.manage.service.DocumentStructureNodeService;
 import org.javaup.ai.manage.support.ChunkCandidate;
 import org.javaup.ai.manage.support.DocumentAnalysisResult;
 import org.javaup.ai.manage.support.DocumentLineClassifier;
@@ -20,13 +21,13 @@ import org.javaup.ai.manage.support.ParentBlockCandidate;
 import org.javaup.enums.DocumentChunkSourceTypeEnum;
 import org.javaup.enums.DocumentContentQualityLevelEnum;
 import org.javaup.enums.DocumentFileTypeEnum;
-import org.javaup.enums.DocumentStrategyPipelineTypeEnum;
 import org.javaup.enums.DocumentStrategyExecuteStatusEnum;
+import org.javaup.enums.DocumentStrategyPipelineTypeEnum;
 import org.javaup.enums.DocumentStrategyRoleEnum;
 import org.javaup.enums.DocumentStrategySourceTypeEnum;
 import org.javaup.enums.DocumentStrategyTypeEnum;
-import org.javaup.enums.DocumentStructureNodeTypeEnum;
 import org.javaup.enums.DocumentStructureLevelEnum;
+import org.javaup.enums.DocumentStructureNodeTypeEnum;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.ObjectProvider;
@@ -42,7 +43,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DocumentStrategyServiceImpl implements DocumentStrategyService {
 
@@ -66,24 +67,10 @@ public class DocumentStrategyServiceImpl implements DocumentStrategyService {
     private static final int PARENT_SEMANTIC_MIN_CHARS = 480;
 
     private final DocumentManageProperties properties;
-
     private final ObjectMapper objectMapper;
-
     private final ObjectProvider<ChatModel> chatModelProvider;
     private final DocumentLineClassifier documentLineClassifier;
     private final DocumentStructureNodeService structureNodeService;
-
-    public DocumentStrategyServiceImpl(DocumentManageProperties properties,
-                                       ObjectMapper objectMapper,
-                                       ObjectProvider<ChatModel> chatModelProvider,
-                                       DocumentLineClassifier documentLineClassifier,
-                                       DocumentStructureNodeService structureNodeService) {
-        this.properties = properties;
-        this.objectMapper = objectMapper;
-        this.chatModelProvider = chatModelProvider;
-        this.documentLineClassifier = documentLineClassifier;
-        this.structureNodeService = structureNodeService;
-    }
 
     @Override
     public DocumentStrategyPlanDraft recommendStrategy(SuperAgentDocument document, DocumentAnalysisResult analysisResult) {

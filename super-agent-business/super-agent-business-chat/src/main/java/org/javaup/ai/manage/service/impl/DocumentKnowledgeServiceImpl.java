@@ -3,10 +3,10 @@ package org.javaup.ai.manage.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.config.DocumentManageProperties;
 import org.javaup.ai.manage.data.SuperAgentDocument;
-import org.javaup.ai.manage.data.SuperAgentDocumentChunk;
 import org.javaup.ai.manage.data.SuperAgentDocumentParentBlock;
 import org.javaup.ai.manage.mapper.SuperAgentDocumentMapper;
 import org.javaup.ai.manage.mapper.SuperAgentDocumentParentBlockMapper;
@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
  **/
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class DocumentKnowledgeServiceImpl implements DocumentKnowledgeService {
 
@@ -102,25 +103,17 @@ public class DocumentKnowledgeServiceImpl implements DocumentKnowledgeService {
     private static final int MAX_KEYWORD_TERMS = 8;
 
     private final SuperAgentDocumentMapper documentMapper;
+    
     private final SuperAgentDocumentParentBlockMapper parentBlockMapper;
+    
+    @Qualifier("documentManagePgVectorJdbcTemplate")
     private final JdbcTemplate pgVectorJdbcTemplate;
+    
     private final ObjectProvider<EmbeddingModel> embeddingModelProvider;
+    
     private final ObjectProvider<DocumentKeywordSearchGateway> keywordSearchGatewayProvider;
+    
     private final DocumentManageProperties properties;
-
-    public DocumentKnowledgeServiceImpl(SuperAgentDocumentMapper documentMapper,
-                                        SuperAgentDocumentParentBlockMapper parentBlockMapper,
-                                        @Qualifier("documentManagePgVectorJdbcTemplate") JdbcTemplate pgVectorJdbcTemplate,
-                                        ObjectProvider<EmbeddingModel> embeddingModelProvider,
-                                        ObjectProvider<DocumentKeywordSearchGateway> keywordSearchGatewayProvider,
-                                        DocumentManageProperties properties) {
-        this.documentMapper = documentMapper;
-        this.parentBlockMapper = parentBlockMapper;
-        this.pgVectorJdbcTemplate = pgVectorJdbcTemplate;
-        this.embeddingModelProvider = embeddingModelProvider;
-        this.keywordSearchGatewayProvider = keywordSearchGatewayProvider;
-        this.properties = properties;
-    }
 
     @Override
     public List<KnowledgeDocumentDescriptor> listRetrievableDocuments() {

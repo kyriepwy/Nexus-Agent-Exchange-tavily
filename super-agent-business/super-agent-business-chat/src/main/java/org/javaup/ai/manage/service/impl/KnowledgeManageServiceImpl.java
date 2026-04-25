@@ -1,10 +1,10 @@
 package org.javaup.ai.manage.service.impl;
 
+import lombok.AllArgsConstructor;
 import com.baidu.fsg.uid.UidGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import cn.hutool.core.util.StrUtil;
-import jakarta.annotation.Resource;
 import org.javaup.ai.manage.data.SuperAgentDocument;
 import org.javaup.ai.manage.data.SuperAgentDocumentProfile;
 import org.javaup.ai.manage.data.SuperAgentKnowledgeScopeNode;
@@ -49,6 +49,7 @@ import java.util.Optional;
  * @description: 服务实现层
  * @author: 阿星不是程序员
  **/
+@AllArgsConstructor
 @Service
 public class KnowledgeManageServiceImpl implements KnowledgeManageService {
 
@@ -58,23 +59,7 @@ public class KnowledgeManageServiceImpl implements KnowledgeManageService {
     private final SuperAgentKnowledgeRouteTraceMapper knowledgeRouteTraceMapper;
     private final SuperAgentDocumentMapper documentMapper;
     private final DocumentProfileService documentProfileService;
-
-    @Resource
-    private UidGenerator uidGenerator;
-
-    public KnowledgeManageServiceImpl(SuperAgentKnowledgeScopeNodeMapper scopeNodeMapper,
-                                      SuperAgentKnowledgeTopicNodeMapper topicNodeMapper,
-                                      SuperAgentTopicDocumentRelationMapper topicDocumentRelationMapper,
-                                      SuperAgentKnowledgeRouteTraceMapper knowledgeRouteTraceMapper,
-                                      SuperAgentDocumentMapper documentMapper,
-                                      DocumentProfileService documentProfileService) {
-        this.scopeNodeMapper = scopeNodeMapper;
-        this.topicNodeMapper = topicNodeMapper;
-        this.topicDocumentRelationMapper = topicDocumentRelationMapper;
-        this.knowledgeRouteTraceMapper = knowledgeRouteTraceMapper;
-        this.documentMapper = documentMapper;
-        this.documentProfileService = documentProfileService;
-    }
+    private final UidGenerator uidGenerator;
 
     @Override
     public KnowledgeScopeItemVo saveScope(KnowledgeScopeSaveDto dto) {
