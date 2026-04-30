@@ -4,7 +4,7 @@
       <div class="login-copy">
         <h1>进入管理后台工作台</h1>
         <p class="login-description">
-          这里用于演示文档上传、策略确认、索引构建与对话观测。登录采用假登录模式，方便直接体验完整业务流转。
+          这里用于管理文档接入、知识路由与对话观测。账号和密码由当前部署环境配置，登录后才能进入后台。
         </p>
       </div>
 
@@ -16,19 +16,21 @@
 
         <label class="field">
           <span>账号</span>
-          <input v-model="form.username" type="text" placeholder="账号自动填充中..." autocomplete="username" />
+          <input v-model="form.username" type="text" placeholder="请输入后台账号" autocomplete="username" />
         </label>
 
         <label class="field">
           <span>密码</span>
-          <input v-model="form.password" type="password" placeholder="密码自动填充中..." autocomplete="current-password" />
+          <input v-model="form.password" type="password" placeholder="请输入后台密码" autocomplete="current-password" />
         </label>
 
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
         <div class="form-actions">
           <button class="secondary-button" type="button" @click="goBackChat">返回聊天</button>
-          <button class="primary-button" type="submit">{{ fillReady ? '进入管理台' : '正在填充账号...' }}</button>
+          <button class="primary-button" type="submit" :disabled="submitting">
+            {{ submitting ? '登录中...' : '进入管理台' }}
+          </button>
         </div>
       </form>
     </div>
@@ -36,46 +38,54 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { loginAdminDemo } from '../utils/adminAuth'
+import { adminAuthApi, APIError } from '../api/api'
+import { saveAdminAuth } from '../utils/adminAuth'
 
 const router = useRouter()
 const route = useRoute()
 
 const form = reactive({
-  username: '',
-  password: ''
+  username: 'admin',
+  password: 'admin123456'
 })
 const errorMessage = ref('')
-const fillReady = computed(() => form.username.trim() && form.password.trim())
+const submitting = ref(false)
 
-function fillDemoAccount() {
-  form.username = 'admin'
-  form.password = 'admin123456'
-}
-
-function submitLogin() {
+async function submitLogin() {
   errorMessage.value = ''
-  if (!fillReady.value) {
-    errorMessage.value = '演示账号还在填充，请稍候再试。'
+  if (!form.username.trim() || !form.password.trim()) {
+    errorMessage.value = '请输入账号和密码。'
     return
   }
 
-  loginAdminDemo(form.username.trim())
-  const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/admin')
-    ? route.query.redirect
-    : '/admin/dashboard'
-  router.replace(redirect)
+  submitting.value = true
+  try {
+    const result = await adminAuthApi.login({
+      username: form.username.trim(),
+      password: form.password
+    })
+    saveAdminAuth({
+      username: result?.username || form.username.trim(),
+      token: result?.token || ''
+    })
+    const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/admin')
+      ? route.query.redirect
+      : '/admin/dashboard'
+    router.replace(redirect)
+  } catch (error) {
+    errorMessage.value = error instanceof APIError || error instanceof Error
+      ? error.message
+      : '登录失败，请稍后重试。'
+  } finally {
+    submitting.value = false
+  }
 }
 
 function goBackChat() {
   router.push('/chat')
 }
-
-onMounted(() => {
-  window.setTimeout(fillDemoAccount, 320)
-})
 </script>
 
 <style scoped>

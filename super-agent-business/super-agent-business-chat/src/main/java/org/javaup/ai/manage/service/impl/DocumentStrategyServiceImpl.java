@@ -18,6 +18,8 @@ import org.javaup.ai.manage.support.DocumentLineClassifier;
 import org.javaup.ai.manage.support.DocumentStrategyPlanDraft;
 import org.javaup.ai.manage.support.DocumentStrategyStepDraft;
 import org.javaup.ai.manage.support.ParentBlockCandidate;
+import org.javaup.ai.prompt.PromptTemplateNames;
+import org.javaup.ai.prompt.PromptTemplateService;
 import org.javaup.enums.DocumentChunkSourceTypeEnum;
 import org.javaup.enums.DocumentContentQualityLevelEnum;
 import org.javaup.enums.DocumentFileTypeEnum;
@@ -71,6 +73,7 @@ public class DocumentStrategyServiceImpl implements DocumentStrategyService {
     private final ObjectProvider<ChatModel> chatModelProvider;
     private final DocumentLineClassifier documentLineClassifier;
     private final DocumentStructureNodeService structureNodeService;
+    private final PromptTemplateService promptTemplateService;
 
     @Override
     public DocumentStrategyPlanDraft recommendStrategy(SuperAgentDocument document, DocumentAnalysisResult analysisResult) {
@@ -862,17 +865,9 @@ public class DocumentStrategyServiceImpl implements DocumentStrategyService {
     }
 
     private List<String> llmSplit(ChatModel chatModel, String sourceText) {
-        String prompt = """
-            你是 RAG 文档切块助手。
-            请把下面文本切成适合知识检索的若干片段，并严格返回 JSON 数组字符串。
-            要求：
-            1. 每个片段尽量语义完整。
-            2. 不要输出解释文字。
-            3. 不要丢失原文关键信息。
-            4. 返回格式示例：[\"片段1\",\"片段2\"]
-
-            文本如下：
-            """ + sourceText;
+        String prompt = promptTemplateService.render(PromptTemplateNames.DOCUMENT_LLM_SPLIT, Map.of(
+            "sourceText", StrUtil.blankToDefault(sourceText, "")
+        ));
 
         try {
 

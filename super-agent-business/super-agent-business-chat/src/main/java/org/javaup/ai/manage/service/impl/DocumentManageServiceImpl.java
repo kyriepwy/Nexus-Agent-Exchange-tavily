@@ -94,6 +94,7 @@ import org.javaup.exception.SuperAgentFrameException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -155,11 +156,12 @@ public class DocumentManageServiceImpl implements DocumentManageService {
     private final ObjectProvider<KnowledgeRouteIndexService> knowledgeRouteIndexServiceProvider;
 
     private final DocumentKafkaProducer kafkaProducer;
+
+    private final TransactionTemplate transactionTemplate;
     
     private final UidGenerator uidGenerator;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public DocumentUploadVo upload(MultipartFile file, DocumentUploadDto dto) {
 
         if (file == null || file.isEmpty()) {
@@ -207,7 +209,6 @@ public class DocumentManageServiceImpl implements DocumentManageService {
         document.setBusinessCategory(StrUtil.trimToNull(dto.getBusinessCategory()));
         document.setDocumentTags(StrUtil.trimToNull(dto.getDocumentTags()));
         document.setStatus(BusinessStatus.YES.getCode());
-        documentMapper.insert(document);
 
         Long taskId = uidGenerator.getUid();
         SuperAgentDocumentTask task = new SuperAgentDocumentTask();
@@ -220,21 +221,27 @@ public class DocumentManageServiceImpl implements DocumentManageService {
         task.setTriggerSource(resolveTriggerSource(operatorId));
         task.setRetryCount(0);
         task.setStatus(BusinessStatus.YES.getCode());
-        taskMapper.insert(task);
 
-        taskLogService.saveLog(taskId, documentId,
-            DocumentTaskStageEnum.FILE_UPLOAD.getCode(),
-            DocumentTaskEventTypeEnum.COMPLETE.getCode(),
-            DocumentLogLevelEnum.INFO.getCode(),
-            resolveOperatorType(operatorId),
-            operatorId,
-            "文件上传完成，已进入解析与策略推荐队列。",
-            Map.of("originalFileName", originalFileName, "fileSize", fileBytes.length));
+        DocumentUploadVo uploadVo = transactionTemplate.execute(status -> {
+            documentMapper.insert(document);
+            taskMapper.insert(task);
+
+            taskLogService.saveLog(taskId, documentId,
+                DocumentTaskStageEnum.FILE_UPLOAD.getCode(),
+                DocumentTaskEventTypeEnum.COMPLETE.getCode(),
+                DocumentLogLevelEnum.INFO.getCode(),
+                resolveOperatorType(operatorId),
+                operatorId,
+                "文件上传完成，已进入解析与策略推荐队列。",
+                Map.of("originalFileName", originalFileName, "fileSize", fileBytes.length));
+
+            return new DocumentUploadVo(documentId, taskId, document.getDocumentName(),
+                document.getParseStatus(), document.getStrategyStatus(), document.getIndexStatus());
+        });
 
         kafkaProducer.sendParseRoute(new DocumentParseRouteMessage(documentId, taskId));
 
-        return new DocumentUploadVo(documentId, taskId, document.getDocumentName(),
-            document.getParseStatus(), document.getStrategyStatus(), document.getIndexStatus());
+        return uploadVo;
     }
 
     @Override

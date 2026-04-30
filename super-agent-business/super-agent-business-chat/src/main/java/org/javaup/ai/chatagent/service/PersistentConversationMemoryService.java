@@ -14,6 +14,8 @@ import org.javaup.ai.chatagent.model.ConversationMemorySummaryView;
 import org.javaup.ai.chatagent.model.memory.ConversationMemoryContext;
 import org.javaup.ai.chatagent.model.memory.ConversationSummaryPayload;
 import org.javaup.ai.chatagent.rag.config.ChatRagProperties;
+import org.javaup.ai.prompt.PromptTemplateNames;
+import org.javaup.ai.prompt.PromptTemplateService;
 import org.javaup.enums.BusinessStatus;
 import org.javaup.enums.ChatTurnStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.time.Instant;
@@ -43,18 +46,6 @@ import java.util.regex.Pattern;
 @Service
 public class PersistentConversationMemoryService implements ConversationMemoryService {
 
-    private static final String SUMMARY_SYSTEM_PROMPT = """
-        你是企业会话长期记忆压缩助手。
-        你的任务不是回答业务问题，而是把已有长期摘要与新增对话批次合并成新的长期记忆。
-        你必须只保留跨轮仍然有价值的信息，例如：
-        1. 用户真正的目标、范围和限制。
-        2. 已经确认的业务事实、术语、系统名、模块名。
-        3. 已经解决的结论和仍待继续追问的问题。
-        4. 对后续知识检索仍有帮助的关键词。
-        不要保留寒暄、重复确认、纯过程性客套话，也不要把失败猜测写成既定事实。
-        最终只返回合法 JSON，不要输出 Markdown，不要附加解释。
-        """;
-
     private static final Pattern JSON_OBJECT_PATTERN = Pattern.compile("\\{.*}", Pattern.DOTALL);
     private static final Pattern RETRIEVAL_HINT_PATTERN = Pattern.compile("[a-zA-Z0-9._-]{2,}|[\\p{IsHan}]{2,12}");
     private static final int MAX_SECTION_ITEMS = 6;
@@ -70,6 +61,7 @@ public class PersistentConversationMemoryService implements ConversationMemorySe
     private final ChatRagProperties properties;
     private final ExecutorService chatMemorySummaryExecutorService;
     private final ObservedChatModelService observedChatModelService;
+    private final PromptTemplateService promptTemplateService;
     private final Set<String> refreshingConversationIds = ConcurrentHashMap.newKeySet();
 
     @Resource
@@ -80,13 +72,15 @@ public class PersistentConversationMemoryService implements ConversationMemorySe
                                                ObjectMapper objectMapper,
                                                ChatRagProperties properties,
                                                @Qualifier("chatMemorySummaryExecutorService") ExecutorService chatMemorySummaryExecutorService,
-                                               ObservedChatModelService observedChatModelService) {
+                                               ObservedChatModelService observedChatModelService,
+                                               PromptTemplateService promptTemplateService) {
         this.conversationArchiveStore = conversationArchiveStore;
         this.summaryMapper = summaryMapper;
         this.objectMapper = objectMapper;
         this.properties = properties;
         this.chatMemorySummaryExecutorService = chatMemorySummaryExecutorService;
         this.observedChatModelService = observedChatModelService;
+        this.promptTemplateService = promptTemplateService;
     }
 
     @Override
@@ -267,7 +261,7 @@ public class PersistentConversationMemoryService implements ConversationMemorySe
         try {
             String content = observedChatModelService.callText(
                 "summary",
-                SUMMARY_SYSTEM_PROMPT,
+                promptTemplateService.render(PromptTemplateNames.CONVERSATION_SUMMARY_SYSTEM, Map.of()),
                 buildSummaryMergePrompt(existingPayload, batch),
                 traceRecorder
             );
@@ -285,35 +279,10 @@ public class PersistentConversationMemoryService implements ConversationMemorySe
     private String buildSummaryMergePrompt(ConversationSummaryPayload existingPayload,
                                            List<ConversationExchangeView> batch) {
         String existingJson = writePayloadJson(normalizePayload(copyPayload(existingPayload)));
-        return """
-            请把下面的已有长期摘要和新增对话批次合并成新的长期记忆 JSON。
-            JSON 结构必须为：
-            {
-              "summary": "一段 180~260 字的中文摘要",
-              "conversation_goal": "一句话描述用户长期目标",
-              "stable_facts": ["事实1", "事实2"],
-              "user_preferences": ["偏好1", "偏好2"],
-              "resolved_points": ["已解决点1", "已解决点2"],
-              "pending_questions": ["待跟进点1", "待跟进点2"],
-              "retrieval_hints": ["系统名或关键词1", "系统名或关键词2"]
-            }
-
-            输出要求：
-            1. 只返回 JSON，不要输出解释。
-            2. 不要把寒暄、重复确认和无关聊天写进去。
-            3. 未确认的信息不要写成既定事实。
-            4. 每个数组最多保留 6 条，尽量去重。
-            5. summary 只保留下一轮理解问题真正需要的长期背景。
-
-            已有长期摘要 JSON：
-            %s
-
-            新增对话批次：
-            %s
-            """.formatted(
-            StrUtil.isNotBlank(existingJson) ? existingJson : "{}",
-            renderCompressionTranscript(batch)
-        );
+        return promptTemplateService.render(PromptTemplateNames.CONVERSATION_SUMMARY_MERGE, Map.of(
+            "existingSummaryJson", StrUtil.isNotBlank(existingJson) ? existingJson : "{}",
+            "newConversationBatch", renderCompressionTranscript(batch)
+        ));
     }
 
     private ConversationSummaryPayload fallbackMerge(ConversationSummaryPayload existingPayload,

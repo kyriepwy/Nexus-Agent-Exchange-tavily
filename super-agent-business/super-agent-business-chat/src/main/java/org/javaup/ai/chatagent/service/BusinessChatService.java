@@ -34,6 +34,8 @@ import org.javaup.ai.chatagent.support.StreamEventWriter;
 import org.javaup.ai.chatagent.vo.ConversationResetVo;
 import org.javaup.ai.chatagent.vo.ConversationSessionListVo;
 import org.javaup.ai.chatagent.vo.ConversationStopVo;
+import org.javaup.ai.prompt.PromptTemplateNames;
+import org.javaup.ai.prompt.PromptTemplateService;
 import org.javaup.enums.ChatTurnStatus;
 import org.javaup.enums.ChatQueryMode;
 import org.javaup.exception.SuperAgentFrameException;
@@ -94,6 +96,7 @@ public class BusinessChatService {
     private final ConversationTraceStageStore conversationTraceStageStore;
     private final RetrievalObserveStore retrievalObserveStore;
     private final StageBenchmarkService stageBenchmarkService;
+    private final PromptTemplateService promptTemplateService;
 
     public Flux<String> openConversationStream(ChatRequestDto request) {
 
@@ -1239,36 +1242,14 @@ public class BusinessChatService {
     }
 
     private String buildAgentQuestion(ConversationExecutionPlan executionPlan) {
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("系统时间信息：\n");
-        builder.append("当前日期是 ").append(executionPlan.getCurrentDateText()).append("，时区为 Asia/Shanghai。\n");
-
-        if (executionPlan.isRequiresCurrentDateAnchoring()) {
-
-            builder.append("当前问题包含相对时间或强时效语义。");
-            builder.append("当用户提到“今天、明天、昨天、现在、当前、最新、本周、本月、今年”等表达时，");
-            builder.append("必须以这个日期为准，不要把搜索结果里的旧日期误当成今天。\n");
-        } else {
-
-            builder.append("当用户提到“今天、明天、昨天、现在、当前、最新”等相对时间时，必须以这个日期为准。\n");
-        }
-
-        if (executionPlan.isRequiresFreshSearch()) {
-
-            builder.append("当前问题需要核实最新外部事实，回答前必须优先调用联网搜索工具。\n");
-            builder.append("如果搜索结果里的日期与当前日期不一致，必须明确说明来源日期，不要把旧日期说成今天。\n");
-            builder.append("如果无法找到与当前日期匹配的可靠结果，要明确说明不确定性，不要编造最新信息。\n");
-        }
-
-        if (StrUtil.isNotBlank(executionPlan.getHistorySummary())) {
-            builder.append("\n相关会话背景：\n");
-            builder.append(executionPlan.getHistorySummary()).append("\n");
-        }
-
-        builder.append("\n用户问题：\n");
-        builder.append(executionPlan.getOriginalQuestion());
-        return builder.toString();
+        return promptTemplateService.render(PromptTemplateNames.AGENT_QUESTION, Map.of(
+            "currentDateText", StrUtil.blankToDefault(executionPlan.getCurrentDateText(), ""),
+            "requiresCurrentDateAnchoring", executionPlan.isRequiresCurrentDateAnchoring(),
+            "requiresFreshSearch", executionPlan.isRequiresFreshSearch(),
+            "hasHistorySummary", StrUtil.isNotBlank(executionPlan.getHistorySummary()),
+            "historySummary", StrUtil.blankToDefault(executionPlan.getHistorySummary(), ""),
+            "question", StrUtil.blankToDefault(executionPlan.getOriginalQuestion(), "")
+        ));
     }
 
     private String formatCurrentDate(LocalDate currentDate) {

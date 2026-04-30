@@ -37,6 +37,21 @@
             <artifactId>jjwt</artifactId>
             <version>${jjwt.version}</version>
         </dependency>
+        <!--
+            jjwt 0.9.1 在 Java 11+ 仍然依赖 javax.xml.bind.DatatypeConverter。
+            当前项目运行在 Java 17，因此这里显式补回 JAXB API 与 runtime，
+            避免登录签发 token 时出现 ClassNotFoundException。
+        -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>${jaxb.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb.runtime.version}</version>
+        </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>

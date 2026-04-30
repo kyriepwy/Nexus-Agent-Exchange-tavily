@@ -78,6 +78,14 @@ mybatis-plus:
     local-cache-scope: statement  
 
 app:
+  admin-auth:
+    username: ${SUPER_AGENT_ADMIN_USERNAME:admin}
+    password: ${SUPER_AGENT_ADMIN_PASSWORD:admin123456}
+    token-secret: ${SUPER_AGENT_ADMIN_TOKEN_SECRET:super-agent-admin-token-secret-change-me}
+    token-expire-minutes: ${SUPER_AGENT_ADMIN_TOKEN_EXPIRE_MINUTES:720}
+  preview-mode:
+    enabled: ${SUPER_AGENT_PREVIEW_MODE_ENABLED:false}
+    message: ${SUPER_AGENT_PREVIEW_MODE_MESSAGE:线上环境为只读展示模式，仅开放浏览与检索能力}
   chat:
     # 是否开启“推荐追问问题”能力。
     # 开启后，主回答生成完成后会额外调用一次模型，产出最多 3 个可继续追问的问题。

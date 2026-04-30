@@ -1,5 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 const REQUEST_TIMEOUT = 30000
+const ADMIN_TOKEN_KEY = 'super-agent-admin-token'
+const ADMIN_USER_KEY = 'super-agent-admin-user'
 
 export class APIError extends Error {
   constructor(message, status, cause) {
@@ -12,6 +14,36 @@ export class APIError extends Error {
 
 function buildApiUrl(path) {
   return API_BASE_URL ? new URL(path, API_BASE_URL).toString() : path
+}
+
+function getAdminToken() {
+  return window.localStorage.getItem(ADMIN_TOKEN_KEY) || ''
+}
+
+function clearAdminAuth() {
+  window.localStorage.removeItem(ADMIN_TOKEN_KEY)
+  window.localStorage.removeItem(ADMIN_USER_KEY)
+}
+
+function buildAuthHeaders(headers = {}) {
+  const token = getAdminToken()
+  if (!token) {
+    return headers
+  }
+  return {
+    Authorization: `Bearer ${token}`,
+    ...headers
+  }
+}
+
+function handleUnauthorized(response) {
+  if (response.status !== 401) {
+    return
+  }
+  clearAdminAuth()
+  if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+    window.location.href = '/admin/login'
+  }
 }
 
 function stringifyManageValue(value) {
@@ -68,13 +100,14 @@ async function requestJson(path, options = {}) {
       method: options.method || 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...(options.headers || {})
+        ...buildAuthHeaders(options.headers || {})
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
       signal: controller.signal
     })
 
     if (!response.ok) {
+      handleUnauthorized(response)
       throw new APIError(await readResponseMessage(response), response.status)
     }
 
@@ -105,13 +138,14 @@ async function requestApiEnvelope(path, options = {}) {
       method: options.method || 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(options.headers || {})
+        ...buildAuthHeaders(options.headers || {})
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
       signal: controller.signal
     })
 
     if (!response.ok) {
+      handleUnauthorized(response)
       throw new APIError(await readResponseMessage(response), response.status)
     }
 
@@ -130,13 +164,14 @@ async function requestMultipartApiEnvelope(path, formData, options = {}) {
     const response = await fetch(buildApiUrl(path), {
       method: options.method || 'POST',
       headers: {
-        ...(options.headers || {})
+        ...buildAuthHeaders(options.headers || {})
       },
       body: formData,
       signal: controller.signal
     })
 
     if (!response.ok) {
+      handleUnauthorized(response)
       throw new APIError(await readResponseMessage(response), response.status)
     }
 
@@ -355,7 +390,8 @@ export const chatApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Accept: 'text/event-stream'
+          Accept: 'text/event-stream',
+          ...buildAuthHeaders()
         },
         body: JSON.stringify(payload),
         signal: controller.signal
@@ -376,6 +412,27 @@ export const chatApi = {
       controller,
       done
     }
+  }
+}
+
+export const adminAuthApi = {
+  login(payload) {
+    return requestApiEnvelope('/admin/auth/login', {
+      method: 'POST',
+      body: payload
+    })
+  },
+
+  logout() {
+    return requestApiEnvelope('/admin/auth/logout', {
+      method: 'POST',
+      body: {}
+    })
+  },
+
+  currentUser() {
+    return requestJson('/admin/auth/me')
+      .then((payload) => unwrapApiResponse(payload))
   }
 }
 

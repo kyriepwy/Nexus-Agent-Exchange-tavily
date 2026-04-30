@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => {
           target: proxyTarget,
           changeOrigin: true
         },
+        '/admin/auth': {
+          target: proxyTarget,
+          changeOrigin: true
+        },
         '/manage': {
           target: proxyTarget,
           changeOrigin: true

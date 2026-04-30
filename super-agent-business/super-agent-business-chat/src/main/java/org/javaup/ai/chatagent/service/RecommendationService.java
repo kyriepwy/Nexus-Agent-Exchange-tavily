@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.javaup.ai.chatagent.config.ChatAgentProperties;
 import org.javaup.ai.chatagent.model.ConversationExchangeView;
+import org.javaup.ai.prompt.PromptTemplateNames;
+import org.javaup.ai.prompt.PromptTemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 /**
  * @program: 企业级别深度设计 AI Agent。添加 阿星不是程序员 微信，添加时备注 super 来获取项目的完整资料
@@ -32,15 +35,18 @@ public class RecommendationService {
     private final ObjectMapper objectMapper;
     private final ExecutorService recommendationExecutorService;
     private final ObservedChatModelService observedChatModelService;
+    private final PromptTemplateService promptTemplateService;
 
     public RecommendationService(ChatAgentProperties properties,
                                  ObjectMapper objectMapper,
                                  @Qualifier("chatPostProcessExecutorService") ExecutorService recommendationExecutorService,
-                                 ObservedChatModelService observedChatModelService) {
+                                 ObservedChatModelService observedChatModelService,
+                                 PromptTemplateService promptTemplateService) {
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.recommendationExecutorService = recommendationExecutorService;
         this.observedChatModelService = observedChatModelService;
+        this.promptTemplateService = promptTemplateService;
     }
 
     public List<String> generateRecommendations(String question,
@@ -77,25 +83,29 @@ public class RecommendationService {
                                                          List<ConversationExchangeView> recentExchanges,
                                                          ConversationTraceRecorder traceRecorder) {
 
-        StringBuilder prompt = new StringBuilder(properties.getRecommendationPrompt())
-            .append("\n\n最近上下文：\n");
+        List<ConversationExchangeView> safeRecentExchanges = recentExchanges == null ? List.of() : recentExchanges;
+        StringBuilder recentContext = new StringBuilder();
 
-        int startIndex = Math.max(0, recentExchanges.size() - properties.getHistoryPreviewTurns());
+        int startIndex = Math.max(0, safeRecentExchanges.size() - properties.getHistoryPreviewTurns());
 
-        for (int index = startIndex; index < recentExchanges.size(); index++) {
-            ConversationExchangeView exchange = recentExchanges.get(index);
-            prompt.append("用户：").append(exchange.getQuestion()).append('\n');
+        for (int index = startIndex; index < safeRecentExchanges.size(); index++) {
+            ConversationExchangeView exchange = safeRecentExchanges.get(index);
+            recentContext.append("用户：").append(exchange.getQuestion()).append('\n');
             if (StrUtil.isNotBlank(exchange.getAnswer())) {
-                prompt.append("助手：").append(exchange.getAnswer()).append('\n');
+                recentContext.append("助手：").append(exchange.getAnswer()).append('\n');
             }
         }
 
-        prompt.append("当前问题：").append(question).append('\n');
-        prompt.append("当前答案：").append(answer).append('\n');
+        String prompt = promptTemplateService.render(PromptTemplateNames.RECOMMENDATION_USER, Map.of(
+            "basePrompt", StrUtil.blankToDefault(properties.getRecommendationPrompt(), ""),
+            "recentContext", recentContext.toString().trim(),
+            "question", StrUtil.blankToDefault(question, ""),
+            "answer", StrUtil.blankToDefault(answer, "")
+        ));
 
         try {
 
-            String content = observedChatModelService.callText("recommendation", null, prompt.toString(), traceRecorder);
+            String content = observedChatModelService.callText("recommendation", null, prompt, traceRecorder);
 
             if (StrUtil.isBlank(content)) {
                 return List.of();

@@ -748,7 +748,10 @@ async function sendMessage(presetQuestion) {
 
     try {
       await refreshSessions()
-      await loadConversation(conversationId)
+      const sessionExists = sessions.value.some((item) => item.conversationId === conversationId)
+      if (sessionExists) {
+        await loadConversation(conversationId)
+      }
     } catch {
       // 这里的错误已经在各自方法里落到页面提示了，不需要再次抛出。
     }

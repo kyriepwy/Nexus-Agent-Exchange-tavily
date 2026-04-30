@@ -27,7 +27,7 @@
             <div class="sidebar-avatar">{{ username.slice(0, 1).toUpperCase() }}</div>
             <div>
               <strong>{{ username }}</strong>
-              <span class="user-role">演示账号</span>
+              <span class="user-role">管理员</span>
             </div>
           </div>
           <button class="logout-btn" type="button" title="退出登录" @click="logout">
@@ -82,7 +82,8 @@ import {
   ShareIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
-import { getAdminUsername, logoutAdminDemo } from '../../utils/adminAuth'
+import { adminAuthApi } from '../../api/api'
+import { clearAdminAuth, getAdminUsername } from '../../utils/adminAuth'
 
 const route = useRoute()
 const router = useRouter()
@@ -99,9 +100,15 @@ const navItems = [
 const pageTitle = computed(() => route.meta?.title || '管理后台')
 const username = computed(() => getAdminUsername())
 
-function logout() {
-  logoutAdminDemo()
-  router.replace('/admin/login')
+async function logout() {
+  try {
+    await adminAuthApi.logout()
+  } catch {
+    // token 失效或网络异常时，前端仍然要允许本地退出。
+  } finally {
+    clearAdminAuth()
+    router.replace('/admin/login')
+  }
 }
 
 function isNavItemActive(targetPath) {

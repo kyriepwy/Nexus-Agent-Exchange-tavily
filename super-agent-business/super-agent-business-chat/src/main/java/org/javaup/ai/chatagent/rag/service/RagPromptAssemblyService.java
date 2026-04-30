@@ -8,11 +8,14 @@ import org.javaup.ai.chatagent.rag.model.ConversationExecutionPlan;
 import org.javaup.ai.chatagent.rag.model.RagPromptAssemblyResult;
 import org.javaup.ai.chatagent.rag.model.RagRetrievalContext;
 import org.javaup.ai.chatagent.rag.model.SubQuestionEvidence;
+import org.javaup.ai.prompt.PromptTemplateNames;
+import org.javaup.ai.prompt.PromptTemplateService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,26 +27,20 @@ import java.util.Set;
 @Service
 public class RagPromptAssemblyService {
 
-    private static final String DEFAULT_SYSTEM_PROMPT = """
-        你是 JavaUp 的企业知识问答助手。
-        你必须严格基于给定证据回答，不要编造证据中没有出现的事实。
-        如果提供了“对话承接上下文”，它只用于理解当前问题中的指代关系，不能替代证据材料，也不能作为事实来源。
-        如果证据不足以支持明确结论，请直接说明资料不足。
-        如果问题被拆成多个子问题，请按编号逐一回答。
-        如果引用了证据，请在对应句子末尾标注 [1][2] 这样的引用编号。
-        """;
-
     private final ChatRagProperties properties;
+    private final PromptTemplateService promptTemplateService;
 
-    public RagPromptAssemblyService(ChatRagProperties properties) {
+    public RagPromptAssemblyService(ChatRagProperties properties,
+                                    PromptTemplateService promptTemplateService) {
         this.properties = properties;
+        this.promptTemplateService = promptTemplateService;
     }
 
     public String buildSystemPrompt() {
 
         return StrUtil.isNotBlank(properties.getAnswerSystemPrompt())
             ? properties.getAnswerSystemPrompt().trim()
-            : DEFAULT_SYSTEM_PROMPT.trim();
+            : promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_SYSTEM, Map.of());
     }
 
     public String buildUserPrompt(ConversationExecutionPlan plan, RagRetrievalContext context) {
@@ -51,45 +48,25 @@ public class RagPromptAssemblyService {
     }
 
     public RagPromptAssemblyResult assemble(ConversationExecutionPlan plan, RagRetrievalContext context) {
-        StringBuilder builder = new StringBuilder();
         PromptBudget promptBudget = new PromptBudget(
             Math.max(0, properties.getTotalEvidenceMaxChars()),
             Math.max(0, properties.getPerSubQuestionEvidenceMaxChars())
         );
         Set<String> renderedReferenceKeys = new LinkedHashSet<>();
-
-        builder.append("当前日期：").append(plan.getCurrentDateText()).append("\n\n");
-        builder.append("用户原始问题：\n").append(plan.getOriginalQuestion()).append("\n\n");
-
-        if (StrUtil.isNotBlank(plan.getRetrievalQuestion()) && !plan.getRetrievalQuestion().equals(plan.getOriginalQuestion())) {
-
-            builder.append("检索理解后的问题：\n").append(plan.getRetrievalQuestion()).append("\n\n");
-        }
-
-        appendHistoryContext(builder, plan);
-
-        if (plan.getRetrievalSubQuestions() != null && plan.getRetrievalSubQuestions().size() > 1) {
-
-            builder.append("请按下面这些子问题逐一回答：\n");
-            for (int index = 0; index < plan.getRetrievalSubQuestions().size(); index++) {
-                builder.append(index + 1).append(". ").append(plan.getRetrievalSubQuestions().get(index)).append("\n");
-            }
-            builder.append("\n");
-        }
-
-        builder.append("证据材料：\n");
-        for (SubQuestionEvidence evidence : context.getSubQuestionEvidenceList()) {
-
-            builder.append("\n## 子问题")
-                .append(evidence.getSubQuestionIndex())
-                .append("：")
-                .append(evidence.getSubQuestion())
-                .append("\n");
-            appendReferences(builder, evidence.getReferences(), renderedReferenceKeys, promptBudget);
-        }
+        String userPrompt = promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_USER, Map.of(
+            "currentDate", StrUtil.blankToDefault(plan.getCurrentDateText(), ""),
+            "originalQuestion", StrUtil.blankToDefault(plan.getOriginalQuestion(), ""),
+            "hasRetrievalQuestion", hasRetrievalQuestion(plan),
+            "retrievalQuestion", StrUtil.blankToDefault(plan.getRetrievalQuestion(), ""),
+            "hasHistoryContext", hasHistoryContext(plan),
+            "historyContext", buildHistoryContext(plan),
+            "hasSubQuestions", hasSubQuestions(plan),
+            "subQuestions", buildSubQuestions(plan),
+            "evidenceBlocks", buildEvidenceBlocks(context, renderedReferenceKeys, promptBudget)
+        ));
         return new RagPromptAssemblyResult(
             buildSystemPrompt(),
-            builder.toString().trim(),
+            userPrompt,
             promptBudget.totalBudget,
             promptBudget.perSubQuestionBudget,
             promptBudget.renderedReferenceCount,
@@ -99,12 +76,56 @@ public class RagPromptAssemblyService {
         );
     }
 
+    private boolean hasRetrievalQuestion(ConversationExecutionPlan plan) {
+        return StrUtil.isNotBlank(plan.getRetrievalQuestion()) && !plan.getRetrievalQuestion().equals(plan.getOriginalQuestion());
+    }
+
+    private boolean hasHistoryContext(ConversationExecutionPlan plan) {
+        AnswerHistoryContext answerHistoryContext = plan.getAnswerHistoryContext();
+        return answerHistoryContext != null && !answerHistoryContext.isEmpty();
+    }
+
+    private String buildHistoryContext(ConversationExecutionPlan plan) {
+        return hasHistoryContext(plan) ? plan.getAnswerHistoryContext().getRenderedText().trim() : "";
+    }
+
+    private boolean hasSubQuestions(ConversationExecutionPlan plan) {
+        return plan.getRetrievalSubQuestions() != null && plan.getRetrievalSubQuestions().size() > 1;
+    }
+
+    private String buildSubQuestions(ConversationExecutionPlan plan) {
+        if (!hasSubQuestions(plan)) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int index = 0; index < plan.getRetrievalSubQuestions().size(); index++) {
+            builder.append(index + 1).append(". ").append(plan.getRetrievalSubQuestions().get(index)).append("\n");
+        }
+        return builder.toString().trim();
+    }
+
+    private String buildEvidenceBlocks(RagRetrievalContext context,
+                                       Set<String> renderedReferenceKeys,
+                                       PromptBudget promptBudget) {
+        StringBuilder builder = new StringBuilder();
+        for (SubQuestionEvidence evidence : context.getSubQuestionEvidenceList()) {
+            StringBuilder referenceBuilder = new StringBuilder();
+            appendReferences(referenceBuilder, evidence.getReferences(), renderedReferenceKeys, promptBudget);
+            builder.append(promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_SUB_QUESTION_EVIDENCE, Map.of(
+                "subQuestionIndex", evidence.getSubQuestionIndex(),
+                "subQuestion", StrUtil.blankToDefault(evidence.getSubQuestion(), ""),
+                "references", referenceBuilder.toString().trim()
+            ))).append("\n\n");
+        }
+        return builder.toString().trim();
+    }
+
     private void appendReferences(StringBuilder builder,
                                   List<SearchReference> references,
                                   Set<String> renderedReferenceKeys,
                                   PromptBudget promptBudget) {
         if (references == null || references.isEmpty()) {
-            builder.append("- 当前子问题没有检索到证据\n");
+            builder.append(promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_NO_EVIDENCE, Map.of())).append('\n');
             return;
         }
         promptBudget.resetSubQuestionBudget();
@@ -112,7 +133,9 @@ public class RagPromptAssemblyService {
         for (SearchReference reference : references) {
             String uniqueKey = reference.uniqueKey();
             if (renderedReferenceKeys.contains(uniqueKey)) {
-                String reuseLine = "- 复用证据 [" + reference.getReferenceId() + "]\n";
+                String reuseLine = promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_REUSE_REFERENCE, Map.of(
+                    "referenceId", StrUtil.blankToDefault(reference.getReferenceId(), "")
+                )) + "\n";
                 if (promptBudget.tryConsume(reuseLine.length())) {
                     builder.append(reuseLine);
                 }
@@ -144,34 +167,29 @@ public class RagPromptAssemblyService {
             }
         }
         if (omitted) {
-            builder.append("- 其余证据因上下文预算限制已省略\n");
+            builder.append(promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_OMITTED_EVIDENCE, Map.of())).append('\n');
         }
     }
 
     private String buildWebReferenceBlock(SearchReference reference) {
-        return new StringBuilder("[")
-            .append(reference.getReferenceId())
-            .append("] 网页：")
-            .append(StrUtil.blankToDefault(reference.getTitle(), "网页来源"))
-            .append("；链接：")
-            .append(StrUtil.blankToDefault(reference.getUrl(), "未知"))
-            .append("\n摘要：")
-            .append(trimSnippet(reference.getSnippet(), 900))
-            .append("\n\n")
-            .toString();
+        return promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_WEB_REFERENCE, Map.of(
+            "referenceId", StrUtil.blankToDefault(reference.getReferenceId(), ""),
+            "title", StrUtil.blankToDefault(reference.getTitle(), "网页来源"),
+            "url", StrUtil.blankToDefault(reference.getUrl(), "未知"),
+            "snippet", trimSnippet(reference.getSnippet(), 900)
+        )) + "\n\n";
     }
 
     private String buildDocumentReferenceBlock(SearchReference reference) {
-        return new StringBuilder("[")
-            .append(reference.getReferenceId())
-            .append("] 文档：")
-            .append(StrUtil.blankToDefault(reference.getDocumentName(), reference.getTitle()))
-            .append("；章节：")
-            .append(StrUtil.blankToDefault(reference.getSectionPath(), "未识别"))
-            .append("\n内容：")
-            .append(trimSnippet(reference.getSnippet(), 1100))
-            .append("\n\n")
-            .toString();
+        return promptTemplateService.render(PromptTemplateNames.RAG_ANSWER_DOCUMENT_REFERENCE, Map.of(
+            "referenceId", StrUtil.blankToDefault(reference.getReferenceId(), ""),
+            "documentName", StrUtil.blankToDefault(
+                StrUtil.blankToDefault(reference.getDocumentName(), reference.getTitle()),
+                "文档来源"
+            ),
+            "sectionPath", StrUtil.blankToDefault(reference.getSectionPath(), "未识别"),
+            "snippet", trimSnippet(reference.getSnippet(), 1100)
+        )) + "\n\n";
     }
 
     private String trimSnippet(String snippet, int maxChars) {
@@ -180,15 +198,6 @@ public class RagPromptAssemblyService {
         }
 
         return snippet.length() <= maxChars ? snippet : snippet.substring(0, maxChars) + "...";
-    }
-
-    private void appendHistoryContext(StringBuilder builder, ConversationExecutionPlan plan) {
-        AnswerHistoryContext answerHistoryContext = plan.getAnswerHistoryContext();
-        if (answerHistoryContext == null || answerHistoryContext.isEmpty()) {
-            return;
-        }
-
-        builder.append(answerHistoryContext.getRenderedText().trim()).append("\n\n");
     }
 
     private String referenceSummary(SearchReference reference, String suffix) {
