@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -269,7 +270,7 @@ public class ElasticsearchDocumentKeywordSearchGateway implements DocumentKeywor
     private Map<Long, SuperAgentDocument> loadDocumentMap(List<SuperAgentDocumentChunk> chunkList) {
         List<Long> documentIds = chunkList.stream()
             .map(SuperAgentDocumentChunk::getDocumentId)
-            .filter(id -> id != null)
+            .filter(Objects::nonNull)
             .distinct()
             .toList();
         if (documentIds.isEmpty()) {
