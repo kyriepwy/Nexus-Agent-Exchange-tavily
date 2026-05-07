@@ -1,14 +1,14 @@
 package org.javaup.ai.chatagent.rag.executor;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import com.alibaba.cloud.ai.graph.streaming.OutputType;
 import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
-import cn.hutool.core.util.StrUtil;
+import org.javaup.ai.chatagent.model.trace.ConversationTraceStageCode;
 import org.javaup.ai.chatagent.rag.model.ExecutionMode;
 import org.javaup.ai.chatagent.rag.support.ExecutorEventSupport;
-import org.javaup.ai.chatagent.model.trace.ConversationTraceStageCode;
 import org.javaup.ai.chatagent.service.ConversationTraceRecorder;
 import org.javaup.ai.chatagent.service.TaskInfo;
 import org.javaup.ai.chatagent.support.StreamEventWriter;
@@ -18,6 +18,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -63,9 +65,9 @@ public class ReactAgentExecutor implements ConversationExecutor {
                 .concatMap(output -> extractTextChunk(output, streamedText))
                 .doOnComplete(() -> {
                     if (taskInfo.traceRecorder() != null) {
-                        taskInfo.traceRecorder().completeStage(agentStage, "ReAct Agent 执行完成。", java.util.Map.of(
-                            "toolNames", taskInfo.debugTrace().getToolTraces() == null ? java.util.List.of() : taskInfo.debugTrace().getToolTraces(),
-                            "usedTools", taskInfo.usedTools() == null ? java.util.List.of() : taskInfo.usedTools()
+                        taskInfo.traceRecorder().completeStage(agentStage, "ReAct Agent 执行完成。", Map.of(
+                            "toolNames", taskInfo.debugTrace().getToolTraces() == null ? List.of() : taskInfo.debugTrace().getToolTraces(),
+                            "usedTools", taskInfo.usedTools() == null ? List.of() : taskInfo.usedTools()
                         ));
                     }
                 })

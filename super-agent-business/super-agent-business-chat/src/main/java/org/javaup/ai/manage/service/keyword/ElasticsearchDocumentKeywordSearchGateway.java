@@ -8,8 +8,8 @@ import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import lombok.extern.slf4j.Slf4j;
 import org.javaup.ai.manage.config.DocumentManageProperties;
 import org.javaup.ai.manage.data.SuperAgentDocument;
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -356,7 +357,7 @@ public class ElasticsearchDocumentKeywordSearchGateway implements DocumentKeywor
         if (StrUtil.isBlank(documentTags)) {
             return List.of();
         }
-        return java.util.Arrays.stream(documentTags.split(","))
+        return Arrays.stream(documentTags.split(","))
             .map(String::trim)
             .filter(StrUtil::isNotBlank)
             .distinct()

@@ -28,8 +28,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -98,7 +101,7 @@ public class ChatPreparationOrchestrator {
         try {
             memoryContext = summarizeHistory(conversationId, traceRecorder);
             if (traceRecorder != null) {
-                traceRecorder.completeStage(memoryStage, "会话记忆装载完成。", java.util.Map.of(
+                traceRecorder.completeStage(memoryStage, "会话记忆装载完成。", Map.of(
                     "compressionApplied", memoryContext != null && memoryContext.isCompressionApplied(),
                     "coveredExchangeId", memoryContext == null ? 0L : memoryContext.getCoveredExchangeId(),
                     "coveredExchangeCount", memoryContext == null ? 0 : memoryContext.getCoveredExchangeCount(),
@@ -136,7 +139,7 @@ public class ChatPreparationOrchestrator {
                 .build();
             if (traceRecorder != null) {
                 ConversationTraceRecorder.StageHandle routeStage = traceRecorder.startStage(ConversationTraceStageCode.ROUTE, ExecutionMode.REACT_AGENT.name(), "路由到开放式 Agent。", null);
-                traceRecorder.completeStage(routeStage, "已判定走开放式 Agent 路径。", java.util.Map.of(
+                traceRecorder.completeStage(routeStage, "已判定走开放式 Agent 路径。", Map.of(
                     "chatMode", chatMode.name(),
                     "executionMode", ExecutionMode.REACT_AGENT.name(),
                     "requiresFreshSearch", requiresFreshSearch,
@@ -245,7 +248,7 @@ public class ChatPreparationOrchestrator {
                 traceRecorder.completeStage(
                     traceRecorder.startStage(ConversationTraceStageCode.ROUTE, "AUTO_DOCUMENT", "正在生成知识范围候选。", null),
                     "知识范围路由完成。",
-                    java.util.Map.of(
+                    Map.of(
                         "confidence", routeDecision == null || routeDecision.getConfidence() == null ? "" : routeDecision.getConfidence().toPlainString(),
                         "routeStatus", routeDecision == null ? "" : StrUtil.blankToDefault(routeDecision.getRouteStatus(), ""),
                         "candidateDocumentCount", candidateDocuments.size(),
@@ -267,7 +270,7 @@ public class ChatPreparationOrchestrator {
         try {
             navigationDecision = documentQuestionRouter.route(routedDocumentId, question, rewriteResult);
             if (traceRecorder != null) {
-                traceRecorder.completeStage(routeStage, "执行路由完成。", java.util.Map.of(
+                traceRecorder.completeStage(routeStage, "执行路由完成。", Map.of(
                     "executionMode", navigationDecision == null || navigationDecision.getExecutionMode() == null ? "" : navigationDecision.getExecutionMode().name(),
                     "targetSectionHint", navigationDecision == null || navigationDecision.getStructureAnchor() == null ? "" : StrUtil.blankToDefault(navigationDecision.getStructureAnchor().getTargetSectionHint(), ""),
                     "targetItemIndex", navigationDecision == null || navigationDecision.getItemAnchor() == null || navigationDecision.getItemAnchor().getItemIndex() == null
@@ -544,7 +547,7 @@ public class ChatPreparationOrchestrator {
     private List<DocumentRouteCandidate> mergeCandidates(List<DocumentRouteCandidate> primary,
                                                          List<DocumentRouteCandidate> secondary,
                                                          int limit) {
-        java.util.LinkedHashMap<String, DocumentRouteCandidate> merged = new java.util.LinkedHashMap<>();
+        LinkedHashMap<String, DocumentRouteCandidate> merged = new LinkedHashMap<>();
         primary.forEach(item -> merged.put(item.getDocumentId(), item));
         secondary.forEach(item -> merged.putIfAbsent(item.getDocumentId(), item));
         return merged.values().stream().limit(Math.max(1, limit)).toList();
@@ -619,7 +622,7 @@ public class ChatPreparationOrchestrator {
     }
 
     private List<String> extractFallbackTerms(String question, String rewriteQuestion) {
-        java.util.LinkedHashSet<String> terms = new java.util.LinkedHashSet<>();
+        LinkedHashSet<String> terms = new LinkedHashSet<>();
         String routingText = (safeText(question) + " " + safeText(rewriteQuestion)).trim();
         for (String segment : routingText.split("[\\s、，,；;：:（）()\\-的和及与或]+")) {
             String trimmed = segment.trim();
@@ -650,13 +653,13 @@ public class ChatPreparationOrchestrator {
             return 0D;
         }
         double score = 0D;
-        java.util.List<String> sortedTerms = queryTerms.stream()
+        List<String> sortedTerms = queryTerms.stream()
             .map(this::normalizeFallbackText)
             .filter(StrUtil::isNotBlank)
             .distinct()
-            .sorted(java.util.Comparator.comparingInt(String::length).reversed())
+            .sorted(Comparator.comparingInt(String::length).reversed())
             .toList();
-        java.util.List<String> matched = new java.util.ArrayList<>();
+        List<String> matched = new ArrayList<>();
         for (String term : sortedTerms) {
             if (term.length() < 2) {
                 continue;
@@ -687,7 +690,7 @@ public class ChatPreparationOrchestrator {
     private String normalizeFallbackText(String value) {
         return StrUtil.blankToDefault(value, "")
             .replaceAll("[\\s>`*#_\\-，,。；;：:（）()“”\"'\\[\\]]+", "")
-            .toLowerCase(java.util.Locale.ROOT);
+            .toLowerCase(Locale.ROOT);
     }
 
     private String buildDocumentModeNoEvidenceReply(String question, boolean requiresFreshSearch) {

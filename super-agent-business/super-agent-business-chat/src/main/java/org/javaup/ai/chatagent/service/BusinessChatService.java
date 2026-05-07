@@ -439,7 +439,7 @@ public class BusinessChatService {
                     System.currentTimeMillis() - taskInfo.startTime()
                 );
                 if (taskInfo.traceRecorder() != null) {
-                    taskInfo.traceRecorder().completeStage(finalizeStage, "会话已按停止状态收尾。", java.util.Map.of(
+                    taskInfo.traceRecorder().completeStage(finalizeStage, "会话已按停止状态收尾。", Map.of(
                         "finalStatus", ChatTurnStatus.STOPPED.name(),
                         "reason", reason,
                         "answerLength", taskInfo.answerBuffer().length()
@@ -593,7 +593,7 @@ public class BusinessChatService {
             );
         }
         if (taskInfo.traceRecorder() != null) {
-            taskInfo.traceRecorder().completeStage(recommendationStage, "推荐追问生成完成。", java.util.Map.of(
+            taskInfo.traceRecorder().completeStage(recommendationStage, "推荐追问生成完成。", Map.of(
                 "recommendationCount", recommendations.size(),
                 "recommendations", recommendations
             ));
@@ -634,7 +634,7 @@ public class BusinessChatService {
                     System.currentTimeMillis() - taskInfo.startTime()
                 );
                 if (taskInfo.traceRecorder() != null) {
-                    taskInfo.traceRecorder().completeStage(finalizeStage, "会话已按完成状态收尾。", java.util.Map.of(
+                    taskInfo.traceRecorder().completeStage(finalizeStage, "会话已按完成状态收尾。", Map.of(
                         "finalStatus", ChatTurnStatus.COMPLETED.name(),
                         "referenceCount", uniqueReferences.size(),
                         "recommendationCount", recommendations.size(),
@@ -706,7 +706,7 @@ public class BusinessChatService {
                     System.currentTimeMillis() - taskInfo.startTime()
                 );
                 if (taskInfo.traceRecorder() != null) {
-                    taskInfo.traceRecorder().completeStage(finalizeStage, "会话已按失败状态收尾。", java.util.Map.of(
+                    taskInfo.traceRecorder().completeStage(finalizeStage, "会话已按失败状态收尾。", Map.of(
                         "finalStatus", ChatTurnStatus.FAILED.name(),
                         "errorMessage", errorMessage,
                         "answerLength", taskInfo.answerBuffer().length()

@@ -1,6 +1,7 @@
 package org.javaup.ai.chatagent.rag.executor;
 
 import cn.hutool.core.util.StrUtil;
+import org.javaup.ai.chatagent.model.trace.ConversationTraceStageCode;
 import org.javaup.ai.chatagent.rag.model.ConversationExecutionPlan;
 import org.javaup.ai.chatagent.rag.model.ExecutionMode;
 import org.javaup.ai.chatagent.rag.model.RagPromptAssemblyResult;
@@ -8,7 +9,6 @@ import org.javaup.ai.chatagent.rag.model.RagRetrievalContext;
 import org.javaup.ai.chatagent.rag.service.RagPromptAssemblyService;
 import org.javaup.ai.chatagent.rag.service.RagRetrievalEngine;
 import org.javaup.ai.chatagent.rag.support.ExecutorEventSupport;
-import org.javaup.ai.chatagent.model.trace.ConversationTraceStageCode;
 import org.javaup.ai.chatagent.service.ConversationTraceRecorder;
 import org.javaup.ai.chatagent.service.ObservedChatModelService;
 import org.javaup.ai.chatagent.service.TaskInfo;
@@ -18,7 +18,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @program: 企业级别深度设计 AI Agent。添加 阿星不是程序员 微信，添加时备注 super 来获取项目的完整资料
@@ -68,7 +70,7 @@ public class RagChatExecutor implements ConversationExecutor {
             })
             .doOnSuccess(context -> {
                 if (taskInfo.traceRecorder() != null && context != null) {
-                    taskInfo.traceRecorder().completeStage(retrieveStage, "RAG 检索完成。", java.util.Map.of(
+                    taskInfo.traceRecorder().completeStage(retrieveStage, "RAG 检索完成。", Map.of(
                         "retrievalQuestion", StrUtil.blankToDefault(context.getRetrievalQuestion(), ""),
                         "usedChannels", context.getUsedChannels() == null ? List.of() : context.getUsedChannels(),
                         "retrievalNotes", context.getRetrievalNotes() == null ? List.of() : context.getRetrievalNotes(),
@@ -76,7 +78,7 @@ public class RagChatExecutor implements ConversationExecutor {
                         "subQuestionCount", context.getSubQuestionEvidenceList() == null ? 0 : context.getSubQuestionEvidenceList().size(),
                         "subQuestions", context.getSubQuestionEvidenceList() == null
                             ? List.of()
-                            : context.getSubQuestionEvidenceList().stream().map(item -> java.util.Map.of(
+                            : context.getSubQuestionEvidenceList().stream().map(item -> Map.of(
                                 "index", item.getSubQuestionIndex(),
                                 "question", StrUtil.blankToDefault(item.getSubQuestion(), ""),
                                 "referenceCount", item.getReferences() == null ? 0 : item.getReferences().size(),
@@ -86,21 +88,21 @@ public class RagChatExecutor implements ConversationExecutor {
                                 "rerankedCandidateCount", item.getRerankedCandidateCount() == null ? 0 : item.getRerankedCandidateCount(),
                                 "channelTraces", item.getChannelTraces() == null
                                     ? List.of()
-                                    : item.getChannelTraces().stream().map(trace -> java.util.Map.of(
+                                    : item.getChannelTraces().stream().map(trace -> Map.of(
                                         "channelName", StrUtil.blankToDefault(trace.getChannelName(), ""),
                                         "recalledCount", trace.getRecalledCount(),
                                         "acceptedCount", trace.getAcceptedCount()
                                     )).toList(),
                                 "references", item.getReferences() == null
                                     ? List.of()
-                                    : item.getReferences().stream().map(reference -> java.util.Map.of(
+                                    : item.getReferences().stream().map(reference -> Map.of(
                                         "referenceId", StrUtil.blankToDefault(reference.getReferenceId(), ""),
                                         "documentName", StrUtil.blankToDefault(reference.getDocumentName(), reference.getTitle()),
                                         "sectionPath", StrUtil.blankToDefault(reference.getSectionPath(), ""),
                                         "channel", StrUtil.blankToDefault(reference.getChannel(), "")
                                     )).toList()
                             )).toList(),
-                        "references", context.flattenReferences().stream().map(reference -> java.util.Map.of(
+                        "references", context.flattenReferences().stream().map(reference -> Map.of(
                             "referenceId", StrUtil.blankToDefault(reference.getReferenceId(), ""),
                             "documentName", StrUtil.blankToDefault(reference.getDocumentName(), reference.getTitle()),
                             "sectionPath", StrUtil.blankToDefault(reference.getSectionPath(), ""),
@@ -119,8 +121,8 @@ public class RagChatExecutor implements ConversationExecutor {
         context.getRetrievalNotes().forEach(note -> ExecutorEventSupport.publishThinking(taskInfo, streamEventWriter, note));
 
         taskInfo.usedTools().addAll(context.getUsedChannels());
-        taskInfo.debugTrace().setRetrievalNotes(new java.util.ArrayList<>(context.getRetrievalNotes()));
-        taskInfo.debugTrace().setUsedChannels(new java.util.ArrayList<>(context.getUsedChannels()));
+        taskInfo.debugTrace().setRetrievalNotes(new ArrayList<>(context.getRetrievalNotes()));
+        taskInfo.debugTrace().setUsedChannels(new ArrayList<>(context.getUsedChannels()));
 
         if (context.isEmpty()) {
 
@@ -140,7 +142,7 @@ public class RagChatExecutor implements ConversationExecutor {
         taskInfo.debugTrace().setRagSystemPrompt(systemPrompt);
         taskInfo.debugTrace().setRagUserPrompt(userPrompt);
         if (taskInfo.traceRecorder() != null) {
-            taskInfo.traceRecorder().completeStage(budgetStage, "证据预算与 Prompt 组装完成。", java.util.Map.of(
+            taskInfo.traceRecorder().completeStage(budgetStage, "证据预算与 Prompt 组装完成。", Map.of(
                 "totalBudget", promptAssemblyResult.getTotalBudget(),
                 "perSubQuestionBudget", promptAssemblyResult.getPerSubQuestionBudget(),
                 "renderedReferenceCount", promptAssemblyResult.getRenderedReferenceCount(),
@@ -158,7 +160,7 @@ public class RagChatExecutor implements ConversationExecutor {
         return observedChatModelService.streamText("rag_answer", systemPrompt, userPrompt, taskInfo.traceRecorder())
             .doOnComplete(() -> {
                 if (taskInfo.traceRecorder() != null) {
-                    taskInfo.traceRecorder().completeStage(answerStage, "答案生成完成。", java.util.Map.of(
+                    taskInfo.traceRecorder().completeStage(answerStage, "答案生成完成。", Map.of(
                         "firstResponseTimeMs", taskInfo.firstResponseTimeMs().get(),
                         "answerLength", taskInfo.answerBuffer().length()
                     ));
