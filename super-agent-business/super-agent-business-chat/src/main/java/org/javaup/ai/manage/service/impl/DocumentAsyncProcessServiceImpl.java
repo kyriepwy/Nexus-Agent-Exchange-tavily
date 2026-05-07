@@ -56,6 +56,7 @@ import org.javaup.enums.DocumentVectorStoreTypeEnum;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -447,8 +448,8 @@ public class DocumentAsyncProcessServiceImpl implements DocumentAsyncProcessServ
                                                              Long taskId,
                                                              Long planId,
                                                              List<ParentBlockCandidate> parentBlockCandidateList) {
-        List<SuperAgentDocumentParentBlock> parentBlockEntityList = new java.util.ArrayList<>();
-        List<SuperAgentDocumentChunk> chunkEntityList = new java.util.ArrayList<>();
+        List<SuperAgentDocumentParentBlock> parentBlockEntityList = new ArrayList<>();
+        List<SuperAgentDocumentChunk> chunkEntityList = new ArrayList<>();
         int globalChunkNo = 1;
 
         for (int parentIndex = 0; parentIndex < parentBlockCandidateList.size(); parentIndex++) {

@@ -15,20 +15,23 @@ import org.javaup.ai.chatagent.rag.model.RagRewriteResult;
 import org.javaup.ai.chatagent.service.ConversationMemoryService;
 import org.javaup.ai.chatagent.service.ConversationTraceRecorder;
 import org.javaup.ai.chatagent.service.TaskInfo;
+import org.javaup.ai.chatagent.support.TimeSensitiveQueryHelper;
+import org.javaup.ai.manage.model.KnowledgeDocumentDescriptor;
 import org.javaup.ai.manage.model.route.DocumentRouteCandidate;
 import org.javaup.ai.manage.model.route.KnowledgeRouteDecision;
-import org.javaup.ai.manage.model.KnowledgeDocumentDescriptor;
 import org.javaup.ai.manage.service.DocumentKnowledgeService;
 import org.javaup.ai.manage.service.KnowledgeRouteService;
-import org.javaup.ai.chatagent.support.TimeSensitiveQueryHelper;
 import org.javaup.enums.ChatQueryMode;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -532,7 +535,7 @@ public class ChatPreparationOrchestrator {
                 StrUtil.blankToDefault(item.getKnowledgeScopeName(), ""),
                 StrUtil.blankToDefault(item.getBusinessCategory(), ""),
                 StrUtil.blankToDefault(item.getDocumentTags(), ""),
-                java.math.BigDecimal.valueOf(fallbackDescriptorScore(item, queryTerms)).setScale(4, java.math.RoundingMode.HALF_UP),
+                BigDecimal.valueOf(fallbackDescriptorScore(item, queryTerms)).setScale(4, RoundingMode.HALF_UP),
                 "低置信度时基于文档元数据进行保守扩范围候选"
             ))
             .toList();
@@ -561,13 +564,13 @@ public class ChatPreparationOrchestrator {
         if (candidateDocuments.size() < 2) {
             return false;
         }
-        java.math.BigDecimal topScore = candidateDocuments.get(0).getScore();
-        java.math.BigDecimal secondScore = candidateDocuments.get(1).getScore();
+        BigDecimal topScore = candidateDocuments.get(0).getScore();
+        BigDecimal secondScore = candidateDocuments.get(1).getScore();
         if (topScore == null || secondScore == null) {
             return false;
         }
         return topScore.subtract(secondScore).doubleValue() <= 3D
-            && !java.util.Objects.equals(candidateDocuments.get(0).getKnowledgeScopeCode(), candidateDocuments.get(1).getKnowledgeScopeCode());
+            && !Objects.equals(candidateDocuments.get(0).getKnowledgeScopeCode(), candidateDocuments.get(1).getKnowledgeScopeCode());
     }
 
     private String buildClarificationReply(String originalQuestion,

@@ -8,6 +8,8 @@ import org.javaup.ai.chatagent.model.debug.ChatModelUsageTrace;
 import org.javaup.ai.chatagent.model.trace.ConversationTraceStageCode;
 import org.javaup.ai.chatagent.model.trace.ConversationTraceStageState;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -143,8 +145,8 @@ public class ConversationTraceRecorder {
         if (throwable == null) {
             return "";
         }
-        java.io.StringWriter sw = new java.io.StringWriter();
-        java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
         throwable.printStackTrace(pw);
         return sw.toString();
     }

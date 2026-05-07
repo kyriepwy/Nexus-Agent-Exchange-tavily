@@ -4,12 +4,14 @@ import cn.hutool.core.date.DateTime;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +28,7 @@ public class JsonCustomSerializer extends BeanSerializerModifier {
 			List<BeanPropertyWriter> beanProperties) {
 
 		for (BeanPropertyWriter writer : beanProperties) {
-			com.fasterxml.jackson.databind.JsonSerializer<Object> js = judgeType(writer);
+			JsonSerializer<Object> js = judgeType(writer);
 			if (js != null) {
 				writer.assignNullSerializer(js);
 			}
@@ -34,12 +36,12 @@ public class JsonCustomSerializer extends BeanSerializerModifier {
 		return beanProperties;
 	}
 
-	public com.fasterxml.jackson.databind.JsonSerializer<Object> judgeType(BeanPropertyWriter writer) {
+	public JsonSerializer<Object> judgeType(BeanPropertyWriter writer) {
 		JavaType javaType = writer.getType();
 		Class<?> clazz = javaType.getRawClass();
 
 		if (String.class.isAssignableFrom(clazz)) {
-			return new com.fasterxml.jackson.databind.JsonSerializer<Object>() {
+			return new JsonSerializer<Object>() {
 				@Override
 				public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers)
 						throws IOException {
@@ -49,7 +51,7 @@ public class JsonCustomSerializer extends BeanSerializerModifier {
 		}
 
 		if (Number.class.isAssignableFrom(clazz)) {
-			return new com.fasterxml.jackson.databind.JsonSerializer<Object>() {
+			return new JsonSerializer<Object>() {
 				@Override
 				public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers)
 						throws IOException {
@@ -59,7 +61,7 @@ public class JsonCustomSerializer extends BeanSerializerModifier {
 		}
 
 		if (Boolean.class.isAssignableFrom(clazz)) {
-			return new com.fasterxml.jackson.databind.JsonSerializer<Object>() {
+			return new JsonSerializer<Object>() {
 				@Override
 				public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers)
 						throws IOException {
@@ -68,8 +70,8 @@ public class JsonCustomSerializer extends BeanSerializerModifier {
 			};
 		}
 
-		if (java.util.Date.class.isAssignableFrom(clazz)) {
-			return new com.fasterxml.jackson.databind.JsonSerializer<Object>() {
+		if (Date.class.isAssignableFrom(clazz)) {
+			return new JsonSerializer<Object>() {
 				@Override
 				public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers)
 						throws IOException {
@@ -79,7 +81,7 @@ public class JsonCustomSerializer extends BeanSerializerModifier {
 		}
 
 		if (clazz.equals(DateTime.class)) {
-			return new com.fasterxml.jackson.databind.JsonSerializer<Object>() {
+			return new JsonSerializer<Object>() {
 				@Override
 				public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers)
 						throws IOException {
@@ -89,7 +91,7 @@ public class JsonCustomSerializer extends BeanSerializerModifier {
 		}
 
 		if (clazz.isArray() || clazz.equals(List.class) || clazz.equals(Set.class)) {
-			return new com.fasterxml.jackson.databind.JsonSerializer<Object>() {
+			return new JsonSerializer<Object>() {
 				@Override
 				public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers)
 						throws IOException {

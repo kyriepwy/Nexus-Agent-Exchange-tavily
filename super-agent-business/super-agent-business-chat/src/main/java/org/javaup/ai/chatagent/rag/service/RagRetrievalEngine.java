@@ -7,8 +7,8 @@ import org.javaup.ai.chatagent.model.SearchReference;
 import org.javaup.ai.chatagent.rag.config.ChatRagProperties;
 import org.javaup.ai.chatagent.rag.model.ConversationExecutionPlan;
 import org.javaup.ai.chatagent.rag.model.RagRetrievalContext;
-import org.javaup.ai.chatagent.rag.model.SubQuestionEvidence;
 import org.javaup.ai.chatagent.rag.model.SubQuestionChannelTrace;
+import org.javaup.ai.chatagent.rag.model.SubQuestionEvidence;
 import org.javaup.ai.chatagent.rag.retrieve.channel.RetrievalChannel;
 import org.javaup.ai.chatagent.rag.retrieve.channel.RetrievalChannelResult;
 import org.javaup.ai.chatagent.rag.support.SearchReferenceMapper;
@@ -22,6 +22,7 @@ import org.springframework.ai.rag.postretrieval.document.DocumentPostProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -405,9 +406,9 @@ public class RagRetrievalEngine {
                     .toList();
 
                 if (!scores.isEmpty()) {
-                    execution.setAvgScore(java.math.BigDecimal.valueOf(scores.stream().mapToDouble(Double::doubleValue).average().orElse(0)));
-                    execution.setMaxScore(java.math.BigDecimal.valueOf(scores.stream().mapToDouble(Double::doubleValue).max().orElse(0)));
-                    execution.setMinScore(java.math.BigDecimal.valueOf(scores.stream().mapToDouble(Double::doubleValue).min().orElse(0)));
+                    execution.setAvgScore(BigDecimal.valueOf(scores.stream().mapToDouble(Double::doubleValue).average().orElse(0)));
+                    execution.setMaxScore(BigDecimal.valueOf(scores.stream().mapToDouble(Double::doubleValue).max().orElse(0)));
+                    execution.setMinScore(BigDecimal.valueOf(scores.stream().mapToDouble(Double::doubleValue).min().orElse(0)));
                 }
             }
 
@@ -456,17 +457,17 @@ public class RagRetrievalEngine {
 
                     Object scoreObj = doc.getMetadata().get(DocumentKnowledgeMetadataKeys.SCORE);
                     if (scoreObj instanceof Number) {
-                        view.setOriginalScore(java.math.BigDecimal.valueOf(((Number) scoreObj).doubleValue()));
+                        view.setOriginalScore(BigDecimal.valueOf(((Number) scoreObj).doubleValue()));
                     }
 
                     Object rrfScoreObj = doc.getMetadata().get(DocumentKnowledgeMetadataKeys.RRF_SCORE);
                     if (rrfScoreObj instanceof Number) {
-                        view.setRrfScore(java.math.BigDecimal.valueOf(((Number) rrfScoreObj).doubleValue()));
+                        view.setRrfScore(BigDecimal.valueOf(((Number) rrfScoreObj).doubleValue()));
                     }
 
                     Object rerankScoreObj = doc.getMetadata().get("rerankScore");
                     if (rerankScoreObj instanceof Number) {
-                        view.setRerankScore(java.math.BigDecimal.valueOf(((Number) rerankScoreObj).doubleValue()));
+                        view.setRerankScore(BigDecimal.valueOf(((Number) rerankScoreObj).doubleValue()));
                     }
 
                     Object docIdObj = doc.getMetadata().get(DocumentKnowledgeMetadataKeys.DOCUMENT_ID);

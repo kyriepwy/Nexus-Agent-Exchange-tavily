@@ -3,6 +3,7 @@ package org.javaup.ai.manage.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -104,7 +105,7 @@ public class DocumentManageProperties {
 
         private Boolean enabled = Boolean.TRUE;
 
-        private List<String> uris = new java.util.ArrayList<>(List.of("http://127.0.0.1:9200"));
+        private List<String> uris = new ArrayList<>(List.of("http://127.0.0.1:9200"));
 
         private String username = "elastic";
 
