@@ -1,6 +1,5 @@
 package org.javaup.ai.manage.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,23 +32,6 @@ public class DocumentRetrieveRequest {
     private DocumentRetrieveFilters filters;
 
     private List<String> queryContextHints;
-
-    public DocumentRetrieveRequest(String question,
-                                   String retrievalQuery,
-                                   Long documentId,
-                                   Long taskId,
-                                   int topK) {
-        this(question, retrievalQuery, documentId, taskId, topK, null, List.of());
-    }
-
-    public DocumentRetrieveRequest(String question,
-                                   String retrievalQuery,
-                                   Long documentId,
-                                   Long taskId,
-                                   int topK,
-                                   DocumentRetrieveFilters filters) {
-        this(question, retrievalQuery, documentId, taskId, topK, filters, List.of());
-    }
 
     public DocumentRetrieveRequest(String question,
                                    String retrievalQuery,
