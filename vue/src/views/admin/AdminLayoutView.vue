@@ -34,6 +34,7 @@
             <ArrowLeftOnRectangleIcon class="nav-icon" />
           </button>
         </div>
+        <IcpFooter class="admin-icp" />
       </div>
     </aside>
 
@@ -82,6 +83,7 @@ import {
   ShareIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
+import IcpFooter from '../../components/IcpFooter.vue'
 import { adminAuthApi } from '../../api/api'
 import { clearAdminAuth, getAdminUsername } from '../../utils/adminAuth'
 
@@ -225,6 +227,11 @@ function isNavItemActive(targetPath) {
 .sidebar-footer {
   padding: 12px;
   border-top: 1px solid var(--color-border);
+}
+
+.admin-icp {
+  margin-top: 10px;
+  --icp-footer-font-size: 11px;
 }
 
 .sidebar-user-card {

@@ -12,12 +12,15 @@
     <main class="app-main">
       <router-view />
     </main>
+
+    <IcpFooter class="app-footer" />
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import IcpFooter from './components/IcpFooter.vue'
 
 const route = useRoute()
 
@@ -70,6 +73,12 @@ const isFullscreenLayout = computed(() => route.meta?.layout === 'fullscreen')
 .app-main {
   max-width: 1440px;
   margin: 0 auto;
+}
+
+.app-footer {
+  max-width: 1440px;
+  margin: 16px auto 0;
+  padding-bottom: 2px;
 }
 
 @media (max-width: 960px) {

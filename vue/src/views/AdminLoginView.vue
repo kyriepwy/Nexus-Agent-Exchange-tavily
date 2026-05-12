@@ -34,12 +34,15 @@
         </div>
       </form>
     </div>
+
+    <IcpFooter class="login-icp" />
   </section>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import IcpFooter from '../components/IcpFooter.vue'
 import { adminAuthApi, APIError } from '../api/api'
 import { saveAdminAuth } from '../utils/adminAuth'
 
@@ -90,8 +93,9 @@ function goBackChat() {
 
 <style scoped>
 .login-shell {
+  position: relative;
   min-height: 100vh;
-  padding: 32px;
+  padding: 32px 32px 64px;
   display: grid;
   place-items: center;
   background: var(--color-bg);
@@ -225,9 +229,16 @@ function goBackChat() {
   background: var(--color-surface-soft);
 }
 
+.login-icp {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 22px;
+}
+
 @media (max-width: 960px) {
   .login-shell {
-    padding: 18px;
+    padding: 18px 18px 58px;
   }
 
   .login-panel {
@@ -247,6 +258,12 @@ function goBackChat() {
   .login-copy,
   .login-form {
     padding: 28px;
+  }
+
+  .login-icp {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
   }
 }
 </style>
