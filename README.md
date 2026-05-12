@@ -6,7 +6,7 @@
 
 项目从对话入口开始，到意图分析、检索决策、多路知识召回、证据驱动生成，再到会话记忆管理、MCP 外部工具集成和文档治理，**每一个环节都不是简单调个接口就完事的，而是经过深度设计和反复打磨的工程化实现**。
 
-- **Super Agent 在线体验(敬请期待)：** [👉 点击进行体验](https://www.javaup.chat)
+- **Super Agent 在线体验：** [👉 点击进行体验](http://super-agent-javaup.chat)
 
 - **Super Agent 详细讲解：** [👉 点击查看讲解](https://www.javaup.chat/super-agent/overview/project-intro)
 
