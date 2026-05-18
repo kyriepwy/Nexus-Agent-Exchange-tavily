@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -390,7 +391,7 @@ public class ElasticsearchKnowledgeRouteIndexService implements KnowledgeRouteIn
     }
 
     private String join(String... values) {
-        return java.util.Arrays.stream(values)
+        return Arrays.stream(values)
             .filter(StrUtil::isNotBlank)
             .collect(Collectors.joining(" "));
     }

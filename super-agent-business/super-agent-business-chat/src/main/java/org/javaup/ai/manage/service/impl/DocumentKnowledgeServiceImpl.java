@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -37,6 +39,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @program: 企业级别深度设计 AI Agent。添加 阿星不是程序员 微信，添加时备注 super 来获取项目的完整资料
@@ -648,12 +651,12 @@ public class DocumentKnowledgeServiceImpl implements DocumentKnowledgeService {
         return String.join("\n\n", parts);
     }
 
-    private Long getNullableLong(java.sql.ResultSet resultSet, String column) throws java.sql.SQLException {
+    private Long getNullableLong(ResultSet resultSet, String column) throws SQLException {
         long value = resultSet.getLong(column);
         return resultSet.wasNull() ? null : value;
     }
 
-    private Integer getNullableInteger(java.sql.ResultSet resultSet, String column) throws java.sql.SQLException {
+    private Integer getNullableInteger(ResultSet resultSet, String column) throws SQLException {
         int value = resultSet.getInt(column);
         return resultSet.wasNull() ? null : value;
     }
@@ -745,7 +748,7 @@ public class DocumentKnowledgeServiceImpl implements DocumentKnowledgeService {
     }
 
     private String buildKeywordScoreExpression(int termCount) {
-        return java.util.stream.IntStream.range(0, termCount)
+        return IntStream.range(0, termCount)
 
             .mapToObj(index -> "("
                 + "CASE WHEN LOWER(chunk_text) LIKE ? THEN ? ELSE 0 END + "
@@ -755,7 +758,7 @@ public class DocumentKnowledgeServiceImpl implements DocumentKnowledgeService {
     }
 
     private String buildKeywordWhereExpression(int termCount) {
-        return java.util.stream.IntStream.range(0, termCount)
+        return IntStream.range(0, termCount)
             .mapToObj(index -> "(LOWER(chunk_text) LIKE ? OR LOWER(COALESCE(section_path, '')) LIKE ?)")
             .collect(Collectors.joining(" OR "));
     }
@@ -866,7 +869,7 @@ public class DocumentKnowledgeServiceImpl implements DocumentKnowledgeService {
     }
 
     private String buildPlaceholders(int size) {
-        return java.util.stream.IntStream.range(0, size)
+        return IntStream.range(0, size)
             .mapToObj(index -> "?")
             .collect(Collectors.joining(","));
     }

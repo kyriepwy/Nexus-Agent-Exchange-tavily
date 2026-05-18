@@ -12,7 +12,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @program: 企业级别深度设计 AI Agent。添加 阿星不是程序员 微信，添加时备注 super 来获取项目的完整资料
@@ -117,14 +119,14 @@ public class ConversationTraceRecorder {
         String stackTrace = throwable == null ? "" : getStackTraceAsString(throwable);
 
         Object enhancedSnapshot = snapshot;
-        if (throwable != null && snapshot instanceof java.util.Map) {
+        if (throwable != null && snapshot instanceof Map) {
             @SuppressWarnings("unchecked")
-            java.util.Map<String, Object> snapshotMap = new java.util.LinkedHashMap<>((java.util.Map<String, Object>) snapshot);
+            Map<String, Object> snapshotMap = new LinkedHashMap<>((Map<String, Object>) snapshot);
             snapshotMap.put("exceptionClass", throwable.getClass().getName());
             snapshotMap.put("stackTrace", stackTrace);
             enhancedSnapshot = snapshotMap;
         } else if (throwable != null) {
-            enhancedSnapshot = java.util.Map.of(
+            enhancedSnapshot = Map.of(
                 "exceptionClass", throwable.getClass().getName(),
                 "errorMessage", errorMessage,
                 "stackTrace", stackTrace

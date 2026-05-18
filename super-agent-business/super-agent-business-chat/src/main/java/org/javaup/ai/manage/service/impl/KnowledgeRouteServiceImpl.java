@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -597,7 +598,7 @@ public class KnowledgeRouteServiceImpl implements KnowledgeRouteService {
     }
 
     private String join(String... values) {
-        return java.util.Arrays.stream(values)
+        return Arrays.stream(values)
             .filter(StrUtil::isNotBlank)
             .collect(Collectors.joining(" "));
     }

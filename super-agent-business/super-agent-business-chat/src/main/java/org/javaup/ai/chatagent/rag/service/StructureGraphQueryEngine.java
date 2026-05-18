@@ -11,6 +11,8 @@ import org.javaup.ai.manage.model.graph.GraphSectionWithSiblings;
 import org.javaup.ai.manage.service.DocumentStructureGraphService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -174,12 +176,12 @@ public class StructureGraphQueryEngine {
         if (documentId == null || sectionNodeId == null) {
             return List.of();
         }
-        List<GraphItem> items = new java.util.ArrayList<>(graphService.listItems(documentId, sectionNodeId));
+        List<GraphItem> items = new ArrayList<>(graphService.listItems(documentId, sectionNodeId));
         for (GraphSection child : graphService.listChildren(documentId, sectionNodeId)) {
             items.addAll(listItemsInSectionTree(documentId, child.getNodeId()));
         }
         return items.stream()
-            .sorted(java.util.Comparator.comparing(GraphItem::getNodeNo, java.util.Comparator.nullsLast(Integer::compareTo)))
+            .sorted(Comparator.comparing(GraphItem::getNodeNo, Comparator.nullsLast(Integer::compareTo)))
             .toList();
     }
 
@@ -187,13 +189,13 @@ public class StructureGraphQueryEngine {
         if (documentId == null || sectionNodeId == null) {
             return List.of();
         }
-        List<GraphItem> items = new java.util.ArrayList<>(graphService.searchItemsInSection(documentId, sectionNodeId, keyword));
+        List<GraphItem> items = new ArrayList<>(graphService.searchItemsInSection(documentId, sectionNodeId, keyword));
         for (GraphSection child : graphService.listChildren(documentId, sectionNodeId)) {
             items.addAll(searchItemsInSectionTree(documentId, child.getNodeId(), keyword));
         }
         return items.stream()
             .distinct()
-            .sorted(java.util.Comparator.comparing(GraphItem::getNodeNo, java.util.Comparator.nullsLast(Integer::compareTo)))
+            .sorted(Comparator.comparing(GraphItem::getNodeNo, Comparator.nullsLast(Integer::compareTo)))
             .toList();
     }
 }

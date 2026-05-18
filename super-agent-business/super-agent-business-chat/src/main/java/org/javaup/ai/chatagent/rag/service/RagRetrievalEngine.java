@@ -31,8 +31,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @program: 企业级别深度设计 AI Agent。添加 阿星不是程序员 微信，添加时备注 super 来获取项目的完整资料
@@ -560,9 +563,9 @@ public class RagRetrievalEngine {
         Throwable current = throwable;
         while (current.getCause() != null
             && current.getCause() != current
-            && (current instanceof java.util.concurrent.CompletionException
-            || current instanceof java.util.concurrent.ExecutionException
-            || current instanceof java.util.concurrent.TimeoutException)) {
+            && (current instanceof CompletionException
+            || current instanceof ExecutionException
+            || current instanceof TimeoutException)) {
             current = current.getCause();
         }
         return current;

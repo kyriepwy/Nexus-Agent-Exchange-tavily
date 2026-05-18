@@ -13,6 +13,7 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @program: 企业级别深度设计 AI Agent。添加 阿星不是程序员 微信，添加时备注 super 来获取项目的完整资料 
@@ -127,7 +128,7 @@ public class GraphRagController {
 
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("课程《%s》的讲师有：%s\n", courseName,
-                results.stream().map(InstructorCoursesDto::instructor).collect(java.util.stream.Collectors.joining("、"))));
+                results.stream().map(InstructorCoursesDto::instructor).collect(Collectors.joining("、"))));
         for (InstructorCoursesDto dto : results) {
             sb.append(String.format("其中 %s 还教了：%s\n",
                     dto.instructor(),
