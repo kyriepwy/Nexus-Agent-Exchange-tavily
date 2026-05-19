@@ -11,6 +11,7 @@ public final class PromptTemplateNames {
     public static final String CHAT_QUERY_REWRITE = "chat-query-rewrite";
     public static final String CONVERSATION_SUMMARY_MERGE = "conversation-summary-merge";
     public static final String CONVERSATION_SUMMARY_SYSTEM = "conversation-summary-system";
+    public static final String DOCUMENT_GRAPH_ONLY_INTENT = "document-graph-only-intent";
     public static final String DOCUMENT_LLM_SPLIT = "document-llm-split";
     public static final String DOCUMENT_STRUCTURE_AMBIGUITY = "document-structure-ambiguity";
     public static final String DOCUMENT_STRUCTURE_AMBIGUITY_CANDIDATE = "document-structure-ambiguity-candidate";
