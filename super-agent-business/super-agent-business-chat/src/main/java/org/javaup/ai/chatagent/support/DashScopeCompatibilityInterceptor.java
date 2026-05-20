@@ -1,19 +1,18 @@
 package org.javaup.ai.chatagent.support;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.agent.interceptor.ModelCallHandler;
 import com.alibaba.cloud.ai.graph.agent.interceptor.ModelInterceptor;
 import com.alibaba.cloud.ai.graph.agent.interceptor.ModelRequest;
 import com.alibaba.cloud.ai.graph.agent.interceptor.ModelResponse;
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
-import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -33,11 +32,10 @@ import java.util.stream.Collectors;
  * @description: 支撑组件
  * @author: 阿星不是程序员
  **/
-
+@Slf4j
 @Component
 public class DashScopeCompatibilityInterceptor extends ModelInterceptor {
-
-    private static final Logger log = LoggerFactory.getLogger(DashScopeCompatibilityInterceptor.class);
+    
     private final String openAiBaseUrl;
 
     public DashScopeCompatibilityInterceptor(@Value("${spring.ai.openai.base-url:}") String openAiBaseUrl) {
