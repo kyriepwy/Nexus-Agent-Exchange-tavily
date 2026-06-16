@@ -58,6 +58,14 @@ Spring AI / LangChain4j 是好工具，但直接拿来用是远远不够！
 
 ![图片](https://multimedia-javaup.cn/super-agent/framework/%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE%28jpg%29.jpg)
 
+# 系统架构总览
+
+在展开每个模块之前，先用一张结构图建立全局认知。Super Agent 不是单点能力堆叠，而是围绕 **对话编排中心、三层执行器、知识底座、检索证据、工具扩展、工程化护栏** 这几块协同工作的完整体系：
+
+<img src="https://multimedia-javaup.cn/super-agent/structure/super-agent-architecture-overview.png" width="100%" />
+
+从图里可以看到，用户入口并不会直接把问题扔给模型，而是先进入对话编排中心做记忆加载、问题改写、子问题拆分和歧义澄清，再根据场景分发到歧义追问、RAG 知识问答或 ReAct Agent。底层的 PGVector、Elasticsearch、Neo4j、Redis、Kafka、MinIO、Tika 等组件并不是孤立存在，而是共同支撑知识构建、检索增强、工具调用和全链路观测。
+
 # 这个项目能学到什么
 
 先直接列出来，小伙伴心里有数：
@@ -96,13 +104,21 @@ Spring AI / LangChain4j 是好工具，但直接拿来用是远远不够！
 
 - **SSE 流式输出协议：正文分片实时推送，结束时补发引用来源和推荐问题，支持主动停止生成，用户体验对标主流 AI 产品**
 
+#### 能力结构图：
+
+<img src="https://multimedia-javaup.cn/super-agent/structure/super-agent-capacity.png" width="100%" />
+
+前端层负责会话执行和运营控制台，接口与流式层负责请求、SSE、鉴权和中断控制，核心链路串起会话记忆、Query 改写、知识路由、图谱导航、多通道检索和 Prompt 组装。
+
+底层再由 MySQL、PGVector、Elasticsearch、Neo4j、Redis、Kafka、MinIO、Tika 等基础设施共同提供能力。也就是说，项目亮点不是只在某个单独 Agen 里，而是分布在整条 AI 应用链路上。
+
 # 系统整体是怎么跑的
 
 用户在输入框里敲了一句话，点了发送。看起来很简单，但在 Super Agent 内部，这条消息要经过一条远比你想象中复杂的链路，才能变成一个靠谱的回答。
 
-先看整体流程，后面再逐块拆解每个环节的设计细节：
+先看对话执行链路，后面再逐块拆解每个环节的设计细节：
 
-<img src="https://multimedia-javaup.cn/super-agent/flow-chart/%E5%9B%BE%E4%B8%80%EF%BC%9A%E6%A0%B8%E5%BF%83%E5%AF%B9%E8%AF%9D%E6%80%BB%E8%A7%88.svg" width="60%" />
+<img src="https://multimedia-javaup.cn/super-agent/structure/super-agent-conversation-execution-chain.png" width="100%" />
 
 核心思路是：**不是让 Agent 自己决定所有事情，而是先用确定性的编排逻辑做好决策，再把执行交给最合适的引擎。** 知识问答走稳定的证据驱动生成，开放式问题才走 Agent 自由探索。
 
@@ -142,6 +158,8 @@ Spring AI / LangChain4j 是好工具，但直接拿来用是远远不够！
 
 判断顺序是：**歧义澄清 > 知识问答 > 开放式 Agent**。优先用最稳定的方式回答，只有确实需要自由探索时才启动 Agent。
 
+在知识问答内部，系统还会继续判断问题是不是结构定位类问题。比如"第三章第二节讲了什么"、"上一节内容是什么"，会优先走 Neo4j 图查询；普通语义问答才进入向量 + 关键词的混合检索链路。这样既能处理结构化导航，也能处理开放表达的知识问答。
+
 # 前置编排器到底做了什么
 
 前面说了系统不会把所有问题直接扔给模型，而是先做一轮完整的编排。它在每次对话中做的事情远比你想象的多：
@@ -172,8 +190,6 @@ Spring AI / LangChain4j 是好工具，但直接拿来用是远远不够！
 
 所有这些步骤完成后，编排器会产出一个 `执行计划`，里面包含执行多种执行编排模式、改写后的问题、拆分后的子问题列表、知识域范围等，交给对应的执行器去执行。
 
-<img src="https://multimedia-javaup.cn/super-agent/flow-chart/%E5%9B%BE%E5%9B%9B%EF%BC%9A%E5%89%8D%E7%BD%AE%E7%BC%96%E6%8E%92%E5%99%A8%E5%86%B3%E7%AD%96%E9%93%BE%E8%B7%AF.svg" width="50%" />
-
 # 检索链路到底有多细
 
 很多人以为检索过程就是"查个向量库 + 让模型回答"，但实际上中间的环节比想象中多得多。下面列的这些问题，在项目中都有对应的设计：
@@ -186,7 +202,7 @@ Spring AI / LangChain4j 是好工具，但直接拿来用是远远不够！
 
 ## 检索是怎么做的？
 
-- 不是只用向量检索。用户问一个订单号、一个配置项名，向量检索很可能找不到。所以用了**双通道并行**：向量检索走 + 关键词检索
+- 不是只用向量检索。用户问一个订单号、一个配置项名，向量检索很可能找不到。所以用了**双通道并行**：向量检索 + 关键词检索
 - 两路结果分数量纲完全不同，不能直接比大小。用 **RRF（Reciprocal Rank Fusion）** 按排名倒数法融合
 - 向量通道设了最低相似度，关键词通道用相对阈值，低于阈值的弱命中直接过滤掉
 - 融合后可以接**外部 Rerank 精排**（支持 SiliconFlow 兼容协议），在较干净的候选集上继续优化排序
@@ -219,9 +235,11 @@ Spring AI / LangChain4j 是好工具，但直接拿来用是远远不够！
 
 # 文档从上传到可检索经历了什么
 
-很多项目的文档处理就是"切成固定长度 → 向量化 → 完事"。但实际上不同文档差异很大，一刀切的效果很难好。Super Agent 的文档处理是一条完整的异步流水线，每一步都有独立的状态追踪和任务日志：
+很多项目的文档处理就是"切成固定长度 → 向量化 → 完事"。但实际上不同文档差异很大，一刀切的效果很难达到想要的效果。Super Agent 的文档处理不是一条孤立的入库流水线，而是 **文档入库 → 组合切块 → 双引擎索引 → Neo4j 图谱 → 三级知识路由 → 混合检索 → 证据生成 → 影子路由观测** 的知识闭环：
 
-<img src="https://multimedia-javaup.cn/super-agent/flow-chart/%E5%9B%BE%E4%BA%94%EF%BC%9A%E6%96%87%E6%A1%A3%E5%A4%84%E7%90%86%E6%B5%81%E6%B0%B4%E7%BA%BF.svg" width="50%" />
+<img src="https://multimedia-javaup.cn/super-agent/structure/super-agent-knowledge-closed-loop.png" width="100%" />
+
+这条闭环里，前半段负责把原始文档加工成可检索、可导航、可路由的知识资产；后半段负责在用户提问时先缩小知识范围，再做混合检索和证据生成；最后通过影子路由把"系统推荐"和"用户实际选择"沉淀成质量观测数据，反过来持续优化知识路由。
 
 ## 第一步：上传和存储
 
@@ -259,8 +277,6 @@ Spring AI / LangChain4j 是好工具，但直接拿来用是远远不够！
 # 会话记忆：Token 成本和上下文完整性的博弈
 
 20 轮对话全塞给模型？Token 成本扛不住。只带最近几轮？可能丢掉关键上下文。这是生产环境下绕不开的问题。
-
-<img src="https://multimedia-javaup.cn/super-agent/flow-chart/%E5%9B%BE%E5%85%AD%EF%BC%9A%E4%BC%9A%E8%AF%9D%E8%AE%B0%E5%BF%86%E6%91%98%E8%A6%81%E5%8E%8B%E7%BC%A9.svg" width="60%" />
 
 ### 项目中设计了三种策略：
 
