@@ -136,7 +136,7 @@ RAG 项目的核心竞争力不在于你用了多强的模型，而在于工程�
 
 - **联网搜索调用失败了怎么处理？** ToolRetryInterceptor 做指数退避重试，最多重试 2 次，初始延迟 200ms，最大延迟 1200ms，带随机抖动。如果最终还是失败，ToolErrorInterceptor 做兜底，不让异常直接抛给用户
 
-- **对话状态怎么持久化？** 用 Spring AI Alibaba 的 MysqlSaver 把 ReactAgent 的 Checkpoint 存到 MySQL，应用重启后能继续之前的对话
+- **对话状态怎么持久化？** 用 MysqlSaver 把 ReactAgent 的 Checkpoint 存到 MySQL，应用重启后能继续之前的对话
 
 - **并行工具执行怎么做？** ReactAgent 配置了 parallelToolExecution，最多 4 个工具并行执行
 
