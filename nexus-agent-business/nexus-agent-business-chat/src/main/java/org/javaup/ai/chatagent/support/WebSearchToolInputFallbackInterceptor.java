@@ -22,25 +22,25 @@ import org.springframework.stereotype.Component;
  **/
 
 @Component
-public class TavilyToolInputFallbackInterceptor extends ToolInterceptor {
+public class WebSearchToolInputFallbackInterceptor extends ToolInterceptor {
 
-    private static final Logger log = LoggerFactory.getLogger(TavilyToolInputFallbackInterceptor.class);
-    private static final String TAVILY_TOOL_NAME = "tavily_search";
+    private static final Logger log = LoggerFactory.getLogger(WebSearchToolInputFallbackInterceptor.class);
+    private static final String WEB_SEARCH_TOOL_NAME = "web_search";
 
     private final ObjectMapper objectMapper;
 
-    public TavilyToolInputFallbackInterceptor(ObjectMapper objectMapper) {
+    public WebSearchToolInputFallbackInterceptor(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
     public String getName() {
-        return "tavilyToolInputFallbackInterceptor";
+        return "webSearchToolInputFallbackInterceptor";
     }
 
     @Override
     public ToolCallResponse interceptToolCall(ToolCallRequest request, ToolCallHandler handler) {
-        if (!TAVILY_TOOL_NAME.equals(request.getToolName())) {
+        if (!WEB_SEARCH_TOOL_NAME.equals(request.getToolName())) {
             return handler.call(request);
         }
 
@@ -50,7 +50,7 @@ public class TavilyToolInputFallbackInterceptor extends ToolInterceptor {
             return ToolCallResponse.error(
                 request.getToolCallId(),
                 request.getToolName(),
-                "tavily_search 工具缺少可用的 query 参数"
+                "web_search 工具缺少可用的 query 参数"
             );
         }
 
@@ -129,7 +129,7 @@ public class TavilyToolInputFallbackInterceptor extends ToolInterceptor {
             return objectMapper.writeValueAsString(payload);
         }
         catch (JsonProcessingException exception) {
-            throw new IllegalStateException("构造 tavily_search 入参 JSON 失败", exception);
+            throw new IllegalStateException("构造 web_search 入参 JSON 失败", exception);
         }
     }
 }

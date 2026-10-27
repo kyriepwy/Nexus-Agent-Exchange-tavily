@@ -65,7 +65,7 @@ public class SearchReference {
         this.url = url;
         this.snippet = snippet;
         this.channel = "web-search";
-        this.toolName = "tavily_search";
+        this.toolName = "web_search";
     }
 
     public String uniqueKey() {

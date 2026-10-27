@@ -16,11 +16,12 @@ spring:
       database: 0
       host: 127.0.0.1
       port: 6379
+      password: 1314PWYlove.
       timeout: 3000  
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/nexus_agent?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
     username: root
-    password: root
+    password: 1314PWYlove.
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       pool-name: nexus-agent-hikari
@@ -43,7 +44,7 @@ spring:
       base-url: https://dashscope.aliyuncs.com/compatible-mode/
       # OpenAI 兼容协议的访问密钥。
       # 正式环境建议改成环境变量注入，不要把真实密钥直接写在配置文件里。
-      api-key: ${ALI_BAI_LIAN_API_KEY}
+      api-key: sk-ws-H.PEEYIII.LPEh.MEYCIQD17cwatrvO_6gZefroVEbgzwffmVJmKTshokbgox1sZgIhAPcS81gOzFTkiKQWOva0GnzFWaBh96hnflauMJ_ELrTd
       chat:
         options:
           # 对话模型名称。
@@ -56,7 +57,7 @@ spring:
         # embedding 单独指定 base-url，便于后续把对话模型和向量模型拆到不同网关时直接切换。
         base-url: https://dashscope.aliyuncs.com/compatible-mode/
         # embedding 调用使用的密钥。
-        api-key: ${ALI_BAI_LIAN_API_KEY}
+        api-key: sk-ws-H.PEEYIII.LPEh.MEYCIQD17cwatrvO_6gZefroVEbgzwffmVJmKTshokbgox1sZgIhAPcS81gOzFTkiKQWOva0GnzFWaBh96hnflauMJ_ELrTd
         options:
           # 向量模型名称。
           # 当前文档切块向量化时，会直接使用这里配置的模型，不再额外在 manage 下重复维护一份。
@@ -97,7 +98,7 @@ app:
     # 这个限制跨多轮对话生效，用来限制某个 conversationId 长期占用过多资源。
     max-model-calls-per-thread: 40
     # 单次对话运行过程中，工具最多允许被调用多少次。
-    # 当前主要限制的是 tavily_search 这类外部联网工具，避免频繁搜索。
+    # 限制 web_search 联网工具的调用次数，避免频繁搜索。
     max-tool-calls-per-run: 6
     # 同一个会话线程累计允许的工具调用上限。
     # 用来控制某个会话在长期多轮聊天中的外部工具使用量。
@@ -217,35 +218,15 @@ app:
         # 单次精排后保留的前 N 个候选。
         top-n: 5
 
-  tavily:
-    # 是否启用 Tavily 联网搜索工具。
-    # 关闭后，ReactAgent 即使判断需要搜索，也无法调用该工具。
+  searxng:
+    # 自托管 SearXNG 的 JSON 搜索接口。Java 在容器内运行时请改为容器可达地址。
     enabled: true
-    # Tavily API 的服务地址。
-    # 如果后续切换代理或企业网关，可以改这里。
-    base-url: https://api.tavily.com
-    # Tavily 搜索接口路径。
-    # 默认使用官方的 /search 端点。
+    base-url: ${SEARXNG_BASE_URL:http://127.0.0.1:8080}
     search-path: /search
-    # Tavily 的 API Key。
-    # 推荐通过环境变量注入，避免把真实密钥写进配置文件。
-    api-key: ${TAVILY_API_KEY}
-    # 搜索主题类型。
-    # Tavily 当前只接受 general、news、finance 三个枚举值。
-    # 一般场景优先用 general。
-    topic: general
-    # 搜索深度。
-    # advanced 会更重一些，但通常能拿到更完整的搜索结果。
-    search-depth: advanced
-    # 单次搜索最多返回多少条候选结果。
-    # 结果越多，引用来源越全，但也会增加模型处理成本。
+    language: zh-CN
     max-results: 5
-    # 是否让 Tavily 在结果中返回它生成的 answer 摘要。
-    # 当前我们主要使用 results 里的来源信息，但 answer 也会被工具结果带回模型。
-    include-answer: true
-    # 是否返回网页原始全文内容。
-    # 默认关闭，避免响应过大；如果后续需要做更深的抽取分析，可以再打开。
-    include-raw-content: false
+    connect-timeout-ms: 3000
+    read-timeout-ms: 8000
 
   manage:
     minio:
@@ -255,10 +236,10 @@ app:
       endpoint: http://127.0.0.1:9000
       # MinIO 访问账号。
       # 本地开发通常使用默认账号，生产环境建议改成专用 AK。
-      access-key: minioadmin
+      access-key: admin
       # MinIO 访问密码。
       # 生产环境不要直接写死在配置文件里，建议通过环境变量或配置中心下发。
-      secret-key: minioadmin
+      secret-key: 1314PWYlove.
       # 文档管理模块统一使用的 bucket 名称。
       # 应用启动时会自动检查这个 bucket 是否存在，不存在就自动创建。
       bucket-name: ${prefix.distinction.name:nexus-agent}-document
@@ -315,7 +296,7 @@ app:
       # PostgreSQL 用户名。
       username: postgres
       # PostgreSQL 密码。
-      password: postgres
+      password: 1314PWYlove.
       # 连接池名称，方便日志和监控定位。
       pool-name: nexus-agent-manage-pgvector-hikari
       # 连接池最大连接数。
@@ -331,7 +312,7 @@ app:
       # Elasticsearch 用户名。
       username: elastic
       # Elasticsearch 密码。
-      password: ${ELASTICSEARCH_PASSWORD:elastic}
+      password: 1314PWYlove.
       # 关键词索引名称。
       index-name: ${prefix.distinction.name:nexus-agent}-document-keyword
       # 导航层结构节点索引名称，粒度是 section/step/list_item，不和 chunk 级关键词索引混用。
@@ -352,7 +333,7 @@ app:
       enabled: true
       uri: bolt://127.0.0.1:7687
       username: neo4j
-      password: ${NEO4J_PASSWORD:12345678}
+      password: ${NEO4J_PASSWORD:1314PWYlove.}
       database: neo4j
       query-timeout-seconds: 5
 

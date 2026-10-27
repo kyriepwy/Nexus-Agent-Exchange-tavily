@@ -65,6 +65,7 @@ const EXECUTION_STATE_LABELS = {
 }
 
 const TOOL_LABELS = {
+  web_search: 'SearXNG 联网搜索',
   tavily_search: 'Tavily 联网搜索',
   keyword: '关键词检索通道',
   vector: '向量检索通道',

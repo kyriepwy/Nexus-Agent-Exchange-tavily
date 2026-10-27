@@ -846,7 +846,7 @@ public class BusinessChatService {
     }
 
     private ConversationExecutionPlan prepareExecutionPlan(TaskInfo taskInfo) {
-
+//准备前置编排器，根据前端传过来的taskinfo准备接下来的工作，主要是前端选择了什么模式（开放；自动文档；当前文档   ）
         ConversationExecutionPlan executionPlan = chatPreparationOrchestrator.prepare(taskInfo);
 
         executionPlan.setAgentQuestion(buildAgentQuestion(executionPlan));

@@ -10,9 +10,9 @@ import com.alibaba.cloud.ai.graph.agent.interceptor.toolretry.ToolRetryIntercept
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.CreateOption;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.mysql.MysqlSaver;
 import org.javaup.ai.chatagent.support.DashScopeCompatibilityInterceptor;
-import org.javaup.ai.chatagent.support.TavilyToolInputFallbackInterceptor;
-import org.javaup.ai.chatagent.tool.TavilySearchRequest;
-import org.javaup.ai.chatagent.tool.TavilySearchTool;
+import org.javaup.ai.chatagent.support.WebSearchToolInputFallbackInterceptor;
+import org.javaup.ai.chatagent.tool.SearxngSearchTool;
+import org.javaup.ai.chatagent.tool.WebSearchRequest;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.function.FunctionToolCallback;
@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
  * @author: 阿星不是程序员
  **/
 @Configuration
-@EnableConfigurationProperties({ChatAgentProperties.class, TavilySearchProperties.class})
+@EnableConfigurationProperties({ChatAgentProperties.class, SearxngSearchProperties.class})
 public class ChatAgentConfiguration {
 
     @Bean
@@ -39,29 +39,29 @@ public class ChatAgentConfiguration {
     }
 
     @Bean
-    public ToolCallback tavilySearchToolCallback(TavilySearchTool tavilySearchTool) {
+    public ToolCallback webSearchToolCallback(SearxngSearchTool searxngSearchTool) {
 
         return FunctionToolCallback
-            .builder("tavily_search", tavilySearchTool::search)
-            .description("联网搜索最新信息、事实资料和网页来源。调用时必须传 JSON 参数，且至少包含非空 query；可选 topic 和 maxResults，其中 topic 仅允许 general、news、finance。")
-            .inputType(TavilySearchRequest.class)
+            .builder(SearxngSearchTool.TOOL_NAME, searxngSearchTool::search)
+            .description("联网搜索最新信息、事实资料和网页来源。调用时传 JSON 参数，必须包含非空 query，可选 maxResults。")
+            .inputType(WebSearchRequest.class)
             .build();
     }
 
     @Bean
     public ReactAgent businessChatReactAgent(ChatModel chatModel,
                                              MysqlSaver mysqlCheckpointSaver,
-                                             ToolCallback tavilySearchToolCallback,
+                                             ToolCallback webSearchToolCallback,
                                              ChatAgentProperties chatAgentProperties,
                                              DashScopeCompatibilityInterceptor dashScopeCompatibilityInterceptor,
-                                             TavilyToolInputFallbackInterceptor tavilyToolInputFallbackInterceptor) {
+                                             WebSearchToolInputFallbackInterceptor webSearchToolInputFallbackInterceptor) {
         return ReactAgent.builder()
 
             .name("business_chat_agent")
             .model(chatModel)
             .instruction(chatAgentProperties.getSystemPrompt())
 
-            .tools(tavilySearchToolCallback)
+            .tools(webSearchToolCallback)
             .saver(mysqlCheckpointSaver)
 
             .parallelToolExecution(true)
@@ -74,7 +74,7 @@ public class ChatAgentConfiguration {
                     .exitBehavior(ModelCallLimitHook.ExitBehavior.END)
                     .build(),
                 ToolCallLimitHook.builder()
-                    .toolName("tavily_search")
+                    .toolName(SearxngSearchTool.TOOL_NAME)
                     .runLimit(chatAgentProperties.getMaxToolCallsPerRun())
                     .threadLimit(chatAgentProperties.getMaxToolCallsPerThread())
                     .exitBehavior(ToolCallLimitHook.ExitBehavior.END)
@@ -83,9 +83,9 @@ public class ChatAgentConfiguration {
 
             .interceptors(
                 dashScopeCompatibilityInterceptor,
-                tavilyToolInputFallbackInterceptor,
+                webSearchToolInputFallbackInterceptor,
                 ToolRetryInterceptor.builder()
-                    .toolName("tavily_search")
+                    .toolName(SearxngSearchTool.TOOL_NAME)
                     .maxRetries(2)
                     .initialDelay(200L)
                     .maxDelay(1200L)

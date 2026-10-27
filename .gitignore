@@ -1,15 +1,23 @@
-HELP.md
+# ========== Maven ==========
 target/
+dependency-reduced-pom.xml
+flattened-pom.xml
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+
+# ========== 日志 ==========
 logs/
+*.log
+*.out
+*.hprof
 
-### Agent ###
-cookasyncagent/
-**/dependency-reduced-pom.xml
+# ========== IDEA ==========
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
 
-### STS ###
+# ========== STS / Eclipse ==========
 .apt_generated
 .classpath
 .factorypath
@@ -18,33 +26,39 @@ cookasyncagent/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-*.log
-*.hprof
-.flattened-pom.xml
-### NetBeans ###
+# ========== NetBeans ==========
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode
-.qoder
-.cursor
-.trae
-.codex
-.claude
-.agents
+# ========== VSCode / Cursor / Trae ==========
+.vscode/
+.cursor/
+.trae/
+.qoder/
+.codex/
+.claude/
+.agents/
+
+# ========== 密钥&环境配置【非常重要！防止泄露】 ==========
+.env
+.env.local
+*.secret
+*.key
+*.pem
+
+# ========== 系统杂项 ==========
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+# ========== 项目文档（你这边自定义） ==========
+HELP.md
 CLAUDE.md
 AGENTS.md
-
-document
+document/
+cookasynagent/

@@ -1,0 +1,2 @@
+### 测试 SearXNG JSON搜索接口
+GET http://127.0.0.1:8080/search?q=ReAct智能体是什么&format=json

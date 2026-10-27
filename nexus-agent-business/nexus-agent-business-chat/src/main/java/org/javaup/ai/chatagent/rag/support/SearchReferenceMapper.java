@@ -35,7 +35,7 @@ public final class SearchReferenceMapper {
         if ("WEB".equalsIgnoreCase(sourceType)) {
             reference.setTitle(asText(metadata.get(DocumentKnowledgeMetadataKeys.TITLE), "网页来源"));
             reference.setUrl(asText(metadata.get(DocumentKnowledgeMetadataKeys.URL), ""));
-            reference.setToolName(asText(metadata.get(DocumentKnowledgeMetadataKeys.TOOL_NAME), "tavily_search"));
+            reference.setToolName(asText(metadata.get(DocumentKnowledgeMetadataKeys.TOOL_NAME), "web_search"));
             return reference;
         }
 
